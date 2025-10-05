@@ -1,0 +1,221 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Daftar Pemenang - Panel Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">
+        <i class="fas fa-crown me-2"></i>
+        Daftar Pemenang Hadiah
+    </h1>
+    <p class="mb-0 text-muted">Lihat semua pemenang dan hadiah yang telah dimenangkan</p>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm" style="background: #ffffff;">
+            <div class="card-header" style="background: linear-gradient(135deg, #e9ecef 0%, #f8f9fa 100%); border-bottom: 2px solid #dee2e6;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0" style="color: #000000; font-weight: bold;">
+                        <i class="fas fa-trophy me-2 text-warning"></i>Pemenang Hadiah
+                    </h5>
+                    <div class="d-flex gap-2">
+                        <small style="color: #666666; font-weight: 500;" class="align-self-center">100 pemenang terakhir</small>
+                        <button type="button" class="btn btn-danger btn-sm" id="deleteSelectedBtn" style="display: none;">
+                            <i class="fas fa-trash me-1"></i>Hapus Terpilih
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                {% if winners %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light" style="background: #f8f9fa;">
+                            <tr>
+                                <th>
+                                    <input type="checkbox" id="selectAll" class="form-check-input">
+                                </th>
+                                <th>No</th>
+                                <th>Username</th>
+                                <th>Hadiah</th>
+                                <th>Kode Voucher</th>
+                                <th>Waktu Menang</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for spin_result, prize, voucher in winners %}
+                            <tr>
+                                <td>
+                                    <input type="checkbox" class="form-check-input winner-checkbox" value="{{ spin_result.id }}">
+                                </td>
+                                <td>{{ loop.index }}</td>
+                                <td>
+                                    {% if spin_result.username %}
+                                        <span class="badge bg-success">{{ spin_result.username }}</span>
+                                    {% else %}
+                                        <span class="text-muted">
+                                            <i class="fas fa-user-slash me-1"></i>Username belum diisi
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        {% if prize.icon_path %}
+                                            <img src="{{ url_for('uploaded_file', filename=prize.icon_path) }}" 
+                                                 alt="{{ prize.name }}" 
+                                                 class="me-2" 
+                                                 style="width: 32px; height: 32px; object-fit: cover; border-radius: 4px;">
+                                        {% else %}
+                                            <i class="fas fa-gift me-2 text-warning"></i>
+                                        {% endif %}
+                                        <div>
+                                            <strong>{{ prize.name }}</strong>
+                                            <br>
+                                            <small class="text-muted">Probabilitas: {{ prize.probability }}%</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <code class="text-primary">{{ voucher.code }}</code>
+                                </td>
+                                <td>
+                                    <small>{{ spin_result.spun_at|wib }}</small>
+                                </td>
+                                <td>
+                                    {% if spin_result.username %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check me-1"></i>Lengkap
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-warning">
+                                            <i class="fas fa-clock me-1"></i>Username belum diisi
+                                        </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-trophy fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Belum ada pemenang</h5>
+                    <p class="text-muted">Pemenang hadiah akan muncul di sini</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Winner Statistics Card -->
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <i class="fas fa-users fa-2x text-primary mb-2"></i>
+                <h6 class="text-muted">Total Pemenang</h6>
+                <h4 class="text-primary">{{ winners|length }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <i class="fas fa-user-check fa-2x text-success mb-2"></i>
+                <h6 class="text-muted">Username Lengkap</h6>
+                <h4 class="text-success">{{ winners|selectattr('0.username')|list|length }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <i class="fas fa-user-clock fa-2x text-warning mb-2"></i>
+                <h6 class="text-muted">Username Kosong</h6>
+                <h4 class="text-warning">{{ winners|rejectattr('0.username')|list|length }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <i class="fas fa-percentage fa-2x text-info mb-2"></i>
+                <h6 class="text-muted">Tingkat Kelengkapan</h6>
+                <h4 class="text-info">
+                    {% if winners|length > 0 %}
+                        {{ "%.1f"|format((winners|selectattr('0.username')|list|length / winners|length * 100)) }}%
+                    {% else %}
+                        0%
+                    {% endif %}
+                </h4>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<script>
+// Handle select all checkbox
+document.getElementById('selectAll').addEventListener('change', function() {
+    const checkboxes = document.querySelectorAll('.winner-checkbox');
+    const deleteBtn = document.getElementById('deleteSelectedBtn');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = this.checked;
+    });
+    
+    deleteBtn.style.display = this.checked ? 'block' : 'none';
+});
+
+// Handle individual checkbox changes
+document.querySelectorAll('.winner-checkbox').forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+        const allCheckboxes = document.querySelectorAll('.winner-checkbox');
+        const checkedBoxes = document.querySelectorAll('.winner-checkbox:checked');
+        const selectAllBox = document.getElementById('selectAll');
+        const deleteBtn = document.getElementById('deleteSelectedBtn');
+        
+        // Update select all checkbox state
+        selectAllBox.checked = checkedBoxes.length === allCheckboxes.length;
+        selectAllBox.indeterminate = checkedBoxes.length > 0 && checkedBoxes.length < allCheckboxes.length;
+        
+        // Show/hide delete button
+        deleteBtn.style.display = checkedBoxes.length > 0 ? 'block' : 'none';
+    });
+});
+
+// Handle delete selected
+document.getElementById('deleteSelectedBtn').addEventListener('click', function() {
+    const checkedBoxes = document.querySelectorAll('.winner-checkbox:checked');
+    
+    if (checkedBoxes.length === 0) {
+        alert('Tidak ada item yang dipilih');
+        return;
+    }
+    
+    if (confirm(`Apakah Anda yakin ingin menghapus ${checkedBoxes.length} history pemenang?`)) {
+        const ids = Array.from(checkedBoxes).map(cb => cb.value);
+        
+        // Create form and submit
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{{ url_for("admin_delete_winners") }}';
+        
+        ids.forEach(id => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'winner_ids';
+            input.value = id;
+            form.appendChild(input);
+        });
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+});
+</script>
+{% endblock %}

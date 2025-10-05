@@ -1,0 +1,205 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Admin Dashboard - Lucky Spin Wheel{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">
+        <i class="fas fa-tachometer-alt me-2"></i>
+        Dashboard Admin
+    </h1>
+    <p class="mb-0 text-muted">Panel kontrol utama untuk mengelola Lucky Spin Wheel</p>
+</div>
+
+<div class="container-fluid">
+    <!-- Quick Action Buttons -->
+    <div class="mb-4">
+        <div class="row">
+            <div class="col-md-2 mb-2">
+                <a href="{{ url_for('admin_prizes') }}" class="btn btn-admin-success w-100">
+                    <i class="fas fa-trophy me-1"></i>Kelola Hadiah
+                </a>
+            </div>
+            <div class="col-md-2 mb-2">
+                <a href="{{ url_for('admin_vouchers') }}" class="btn btn-admin-primary w-100">
+                    <i class="fas fa-ticket-alt me-1"></i>Kelola Voucher
+                </a>
+            </div>
+            <div class="col-md-2 mb-2">
+                <a href="{{ url_for('admin_vip_vouchers') }}" class="btn btn-warning text-white w-100">
+                    <i class="fas fa-crown me-1"></i>VIP Voucher
+                </a>
+            </div>
+            <div class="col-md-2 mb-2">
+                <a href="{{ url_for('admin_winners') }}" class="btn btn-info text-white w-100">
+                    <i class="fas fa-award me-1"></i>Pemenang
+                </a>
+            </div>
+            <div class="col-md-2 mb-2">
+                <a href="{{ url_for('admin_history') }}" class="btn btn-secondary text-white w-100">
+                    <i class="fas fa-history me-1"></i>Riwayat
+                </a>
+            </div>
+            <div class="col-md-2 mb-2">
+                <a href="{{ url_for('admin_settings') }}" class="btn btn-outline-primary w-100">
+                    <i class="fas fa-cog me-1"></i>Pengaturan
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);">
+                <div class="card-body text-center">
+                    <i class="fas fa-trophy fs-2 text-warning mb-3"></i>
+                    <h3 style="color: #000000; font-weight: bold;">{{ stats.prizes }}</h3>
+                    <p class="mb-0" style="color: #333333; font-weight: 600;">Total Hadiah</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);">
+                <div class="card-body text-center">
+                    <i class="fas fa-ticket-alt fs-2 text-success mb-3"></i>
+                    <h3 style="color: #000000; font-weight: bold;">{{ stats.active_vouchers }}</h3>
+                    <p class="mb-0" style="color: #333333; font-weight: 600;">Voucher Aktif</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);">
+                <div class="card-body text-center">
+                    <i class="fas fa-check-circle fs-2 text-danger mb-3"></i>
+                    <h3 style="color: #000000; font-weight: bold;">{{ stats.used_vouchers }}</h3>
+                    <p class="mb-0" style="color: #333333; font-weight: 600;">Voucher Terpakai</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);">
+                <div class="card-body text-center">
+                    <i class="fas fa-crown fs-2 text-warning mb-3"></i>
+                    <h3 style="color: #000000; font-weight: bold;">{{ stats.vip_vouchers }}</h3>
+                    <p class="mb-0" style="color: #333333; font-weight: 600;">VIP Voucher</p>
+                </div>
+            </div>
+        </div>
+    
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-md-12 mb-3">
+            <div class="card border-0 shadow-lg" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+                <div class="card-body text-center py-4">
+                    <i class="fas fa-chart-line fs-1 text-primary mb-3"></i>
+                    <h2 style="color: #000000; font-weight: bold; font-size: 3rem;">{{ stats.total_spins }}</h2>
+                    <p class="mb-0" style="color: #333333; font-weight: 600; font-size: 1.2rem;">Total Putaran Wheel</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+<!-- Aksi Cepat -->
+<div class="row">
+    <div class="col-lg-4 col-md-6 mb-3">
+        <div class="card border-0 shadow-sm h-100" style="background: #ffffff;">
+            <div class="card-header" style="background: linear-gradient(135deg, #28a745, #20c997); color: white; border-radius: 12px 12px 0 0;">
+                <h5 class="mb-0" style="font-weight: bold;">
+                    <i class="fas fa-trophy me-2"></i>
+                    Kelola Hadiah
+                </h5>
+            </div>
+            <div class="card-body">
+                <p style="color: #333333; font-weight: 500;">Tambah, edit, atau hapus hadiah dari wheel. Atur persentase probabilitas dan upload ikon kustom.</p>
+                <a href="{{ url_for('admin_prizes') }}" class="btn btn-admin-success" style="font-weight: bold;">
+                    <i class="fas fa-arrow-right me-1"></i>Kelola Hadiah
+                </a>
+            </div>
+        </div>
+    </div>
+        
+    <div class="col-lg-4 col-md-6 mb-3">
+        <div class="card border-0 shadow-sm h-100" style="background: #ffffff;">
+            <div class="card-header" style="background: linear-gradient(135deg, #007bff, #0056b3); color: white; border-radius: 12px 12px 0 0;">
+                <h5 class="mb-0" style="font-weight: bold;">
+                    <i class="fas fa-ticket-alt me-2"></i>
+                    Sistem Voucher
+                </h5>
+            </div>
+            <div class="card-body">
+                <p style="color: #333333; font-weight: 500;">Buat kode voucher untuk pengguna mengakses wheel spin. Lacak penggunaan dan kelola voucher aktif.</p>
+                <a href="{{ url_for('admin_vouchers') }}" class="btn btn-admin-primary" style="font-weight: bold;">
+                    <i class="fas fa-arrow-right me-1"></i>Kelola Voucher
+                </a>
+            </div>
+        </div>
+    </div>
+        
+    <div class="col-lg-4 col-md-12 mb-3">
+        <div class="card border-0 shadow-sm h-100" style="background: #ffffff;">
+            <div class="card-header" style="background: linear-gradient(135deg, #6f42c1, #5a2a9a); color: white; border-radius: 12px 12px 0 0;">
+                <h5 class="mb-0" style="font-weight: bold;">
+                    <i class="fas fa-cog me-2"></i>
+                    Kustomisasi Wheel
+                </h5>
+            </div>
+            <div class="card-body">
+                <p style="color: #333333; font-weight: 500;">Kustomisasi tampilan wheel, upload logo brand, atur gambar latar dan skema warna.</p>
+                <a href="{{ url_for('admin_settings') }}" class="btn btn-admin-primary" style="font-weight: bold;">
+                    <i class="fas fa-arrow-right me-1"></i>Kustomisasi Wheel
+                </a>
+            </div>
+        </div>
+    </div>
+    </div>
+    
+    <!-- Quick Links -->
+    <div class="mt-4">
+        <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);">
+            <div class="card-header" style="background: linear-gradient(135deg, #e9ecef 0%, #f8f9fa 100%); border-bottom: 2px solid #dee2e6;">
+                <h5 class="mb-0" style="color: #000000; font-weight: bold;">
+                    <i class="fas fa-external-link-alt text-primary me-2"></i>
+                    Tautan Cepat
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul class="list-unstyled">
+                            <li class="mb-3">
+                                <a href="{{ url_for('index') }}" class="text-decoration-none btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-home me-2"></i>Lihat Spin Wheel
+                                </a>
+                            </li>
+                            <li class="mb-3">
+                                <a href="{{ url_for('admin_prizes') }}" class="text-decoration-none btn btn-outline-success btn-sm">
+                                    <i class="fas fa-plus me-2"></i>Tambah Hadiah Baru
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul class="list-unstyled">
+                            <li class="mb-3">
+                                <a href="{{ url_for('admin_vouchers') }}" class="text-decoration-none btn btn-outline-info btn-sm">
+                                    <i class="fas fa-plus me-2"></i>Generate Voucher
+                                </a>
+                            </li>
+                            <li class="mb-3">
+                                <a href="{{ url_for('admin_settings') }}" class="text-decoration-none btn btn-outline-warning btn-sm">
+                                    <i class="fas fa-palette me-2"></i>Kustomisasi Tampilan
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

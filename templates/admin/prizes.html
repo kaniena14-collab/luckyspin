@@ -1,0 +1,460 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Kelola Hadiah - Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">
+        <i class="fas fa-trophy me-2"></i>
+        Kelola Hadiah
+    </h1>
+    <p class="mb-0 text-muted">Tambah, edit, atau hapus hadiah dari wheel spin</p>
+</div>
+        
+<div class="d-flex justify-content-end gap-2 mb-3">
+    {% if prizes %}
+    <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#bulkUploadModal">
+        <i class="fas fa-upload me-1"></i>Upload Icon Massal
+    </button>
+    {% endif %}
+    <button class="btn btn-admin-success" data-bs-toggle="modal" data-bs-target="#addPrizeModal">
+        <i class="fas fa-plus me-1"></i>Tambah Hadiah Baru
+    </button>
+</div>
+    
+    <!-- Prizes List -->
+    <div class="admin-card">
+        <div class="card-header" style="background-color: #e9ecef;">
+            <h5 class="mb-0" style="color: #212529; font-weight: 600;">Daftar Hadiah ({{ prizes|length }})</h5>
+        </div>
+        <div class="card-body">
+            {% if prizes %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr class="table-light">
+                            <th>Ikon</th>
+                            <th>Nama Hadiah</th>
+                            <th>Probabilitas (%)</th>
+                            <th>Status</th>
+                            <th>Dibuat</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for prize in prizes %}
+                        <tr>
+                            <td>
+                                {% if prize.icon_path %}
+                                <img src="{{ url_for('uploaded_file', filename=prize.icon_path) }}" 
+                                     alt="{{ prize.name }}" 
+                                     class="img-thumbnail"
+                                     style="width: 40px; height: 40px; object-fit: cover;">
+                                {% else %}
+                                <i class="fas fa-gift fs-4 text-warning"></i>
+                                {% endif %}
+                            </td>
+                            <td>{{ prize.name }}</td>
+                            <td>
+                                <span class="badge bg-{% if prize.probability >= 20 %}success{% elif prize.probability >= 10 %}warning{% else %}danger{% endif %}">
+                                    {{ "%.1f"|format(prize.probability) }}%
+                                </span>
+                            </td>
+                            <td>
+                                {% if prize.is_active %}
+                                <span class="badge bg-success">Aktif</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Tidak Aktif</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ prize.created_at|wib_date }}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-warning" 
+                                            onclick="editPrize({{ prize.id }}, '{{ prize.name }}', {{ prize.probability }}, {{ prize.is_active|lower }})"
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#editPrizeModal">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <!-- Normal Delete Button -->
+                                    {% if request.args.get('warning_prize_id')|int != prize.id %}
+                                    <button class="btn btn-outline-danger" 
+                                            onclick="deletePrize({{ prize.id }}, '{{ prize.name }}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    {% else %}
+                                    <!-- Force Delete Button when warning -->
+                                    <button class="btn btn-danger" 
+                                            onclick="forceDeletePrize({{ prize.id }}, '{{ prize.name }}')">
+                                        <i class="fas fa-exclamation-triangle"></i> Hapus Paksa
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if pagination and pagination.pages > 1 %}
+            <nav aria-label="Prizes pagination" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    <!-- Previous page -->
+                    {% if pagination.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('admin_prizes', page=pagination.prev_num) }}">
+                            <i class="fas fa-chevron-left"></i> Previous
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">
+                            <i class="fas fa-chevron-left"></i> Previous
+                        </span>
+                    </li>
+                    {% endif %}
+                    
+                    <!-- Page numbers -->
+                    {% for page_num in pagination.iter_pages() %}
+                        {% if page_num %}
+                            {% if page_num != pagination.page %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('admin_prizes', page=page_num) }}">{{ page_num }}</a>
+                            </li>
+                            {% else %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                            {% endif %}
+                        {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    <!-- Next page -->
+                    {% if pagination.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('admin_prizes', page=pagination.next_num) }}">
+                            Next <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">
+                            Next <i class="fas fa-chevron-right"></i>
+                        </span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-trophy fs-1 text-muted mb-3"></i>
+                <h4 class="text-muted">Belum ada hadiah</h4>
+                <p class="text-muted mb-4">Tambahkan hadiah pertama untuk memulai wheel spin.</p>
+                <button class="btn btn-admin-success" data-bs-toggle="modal" data-bs-target="#addPrizeModal">
+                    <i class="fas fa-plus me-2"></i>Tambah Hadiah Pertama
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Probability Info -->
+    {% if prizes %}
+    <div class="mt-4">
+        <div class="alert alert-info">
+            <h6><i class="fas fa-info-circle me-2"></i>Probability Distribution</h6>
+            <p class="mb-2">Total probability: {{ "%.1f"|format(prizes|sum(attribute='probability')) }}%</p>
+            <small class="text-muted">
+                Note: Probabilities don't need to sum to 100%. The system uses weighted random selection based on relative probabilities.
+            </small>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Add Prize Modal -->
+<div class="modal fade" id="addPrizeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('admin_add_prize') }}" enctype="multipart/form-data">
+                <input type="hidden" name="page" value="{{ current_page or 1 }}">
+                <div class="modal-header">
+                    <h5 class="modal-title text-primary">Tambah Hadiah Baru</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="addName" class="form-label">Nama Hadiah *</label>
+                        <input type="text" class="form-control" id="addName" name="name" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="addIcon" class="form-label">Ikon Hadiah</label>
+                        <input type="file" class="form-control" id="addIcon" name="icon" accept=".png,.jpg,.jpeg,.gif,.svg">
+                        <div class="form-text">Opsional: Upload PNG, JPG, GIF, atau SVG (maksimal 16MB)</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="addProbability" class="form-label">Probabilitas (%) *</label>
+                        <input type="number" class="form-control" id="addProbability" name="probability" 
+                               min="0" max="100" step="0.1" value="10" required>
+                        <div class="form-text">Atur peluang memenangkan hadiah ini (0-100%)</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-admin-success">
+                        <i class="fas fa-plus me-1"></i>Tambah Hadiah
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Prize Modal -->
+<div class="modal fade" id="editPrizeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" id="editPrizeForm" enctype="multipart/form-data">
+                <input type="hidden" name="page" value="{{ current_page or 1 }}">
+                <div class="modal-header">
+                    <h5 class="modal-title text-primary">Edit Hadiah</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="editName" class="form-label">Nama Hadiah *</label>
+                        <input type="text" class="form-control" id="editName" name="name" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="editIcon" class="form-label">Ikon Hadiah</label>
+                        <input type="file" class="form-control" id="editIcon" name="icon" accept=".png,.jpg,.jpeg,.gif,.svg">
+                        <div class="form-text">Kosongkan untuk tetap menggunakan ikon saat ini</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="editProbability" class="form-label">Probabilitas (%) *</label>
+                        <input type="number" class="form-control" id="editProbability" name="probability" 
+                               min="0" max="100" step="0.1" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="editIsActive" name="is_active" checked>
+                            <label class="form-check-label" for="editIsActive">
+                                Aktif (muncul di wheel)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-admin-success">
+                        <i class="fas fa-save me-1"></i>Simpan Perubahan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Upload Icons Modal -->
+<div class="modal fade" id="bulkUploadModal" tabindex="-1" aria-labelledby="bulkUploadModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('admin_bulk_upload_icons') }}" enctype="multipart/form-data">
+                <div class="modal-header">
+                    <h5 class="modal-title text-warning" id="bulkUploadModalLabel">
+                        <i class="fas fa-upload me-2"></i>Upload Icon Massal
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-info-circle me-2"></i>Cara Penggunaan:</h6>
+                        <ul class="mb-0">
+                            <li>Pilih file icon untuk hadiah yang ingin diupdate</li>
+                            <li>Hanya hadiah yang dipilih file-nya yang akan diupdate</li>
+                            <li>Data hadiah existing tidak akan berubah, hanya icon yang diupdate</li>
+                            <li>Format yang didukung: PNG, JPG, JPEG, GIF, SVG (maksimal 16MB per file)</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="row">
+                        {% for prize in prizes %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body d-flex align-items-center">
+                                    <div class="me-3">
+                                        {% if prize.icon_path %}
+                                        <img src="{{ url_for('uploaded_file', filename=prize.icon_path) }}" 
+                                             alt="{{ prize.name }}" 
+                                             class="img-thumbnail"
+                                             style="width: 60px; height: 60px; object-fit: cover;">
+                                        {% else %}
+                                        <div class="text-center p-2 bg-light rounded" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-gift text-warning"></i>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="card-title mb-1">{{ prize.name }}</h6>
+                                        <p class="text-muted small mb-2">Prob: {{ "%.1f"|format(prize.probability) }}%</p>
+                                        <input type="file" 
+                                               class="form-control form-control-sm" 
+                                               name="icon_{{ prize.id }}" 
+                                               accept=".png,.jpg,.jpeg,.gif,.svg"
+                                               onchange="previewBulkIcon(this, {{ prize.id }})">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            <i class="fas fa-shield-alt me-1"></i>
+                            File akan disimpan dengan aman ke Object Storage untuk menghindari hilang saat restart sistem.
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fas fa-upload me-1"></i>Upload Icon Terpilih
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function editPrize(id, name, probability, isActive) {
+    document.getElementById('editPrizeForm').action = `{{ url_for('admin_edit_prize', prize_id=0) }}`.replace('0', id);
+    document.getElementById('editName').value = name;
+    document.getElementById('editProbability').value = probability;
+    document.getElementById('editIsActive').checked = isActive;
+}
+
+function deletePrize(id, name) {
+    if (confirm(`Apakah Anda yakin ingin menghapus hadiah "${name}"? Tindakan ini tidak dapat dibatalkan.`)) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `{{ url_for('admin_delete_prize', prize_id=0) }}`.replace('0', id);
+        
+        // Add page parameter if available
+        const urlParams = new URLSearchParams(window.location.search);
+        const page = urlParams.get('page');
+        if (page) {
+            const pageInput = document.createElement('input');
+            pageInput.type = 'hidden';
+            pageInput.name = 'page';
+            pageInput.value = page;
+            form.appendChild(pageInput);
+        }
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+// Preview uploaded images
+document.getElementById('addIcon').addEventListener('change', function(e) {
+    previewImage(e.target, 'addIconPreview');
+});
+
+document.getElementById('editIcon').addEventListener('change', function(e) {
+    previewImage(e.target, 'editIconPreview');
+});
+
+function previewImage(input, previewId) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            let preview = document.getElementById(previewId);
+            if (!preview) {
+                preview = document.createElement('img');
+                preview.id = previewId;
+                preview.className = 'img-thumbnail mt-2';
+                preview.style = 'max-width: 100px; max-height: 100px;';
+                input.parentNode.appendChild(preview);
+            }
+            preview.src = e.target.result;
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+window.forceDeletePrize = (id, name) => {
+    const message = `PERINGATAN: Ini akan menghapus hadiah "${name}" beserta SEMUA history spin yang terkait. Tindakan ini tidak dapat dibatalkan!\n\nApakah Anda yakin ingin melanjutkan?`;
+    
+    if (confirm(message)) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/admin/prizes/delete/${id}`;
+        
+        // Add force delete flag
+        const forceInput = document.createElement('input');
+        forceInput.type = 'hidden';
+        forceInput.name = 'force_delete';
+        forceInput.value = '1';
+        form.appendChild(forceInput);
+        
+        // Add page parameter if available
+        const urlParams = new URLSearchParams(window.location.search);
+        const page = urlParams.get('page');
+        if (page) {
+            const pageInput = document.createElement('input');
+            pageInput.type = 'hidden';
+            pageInput.name = 'page';
+            pageInput.value = page;
+            form.appendChild(pageInput);
+        }
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+};
+
+// Preview bulk upload icons
+function previewBulkIcon(input, prizeId) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            // Find the current image element for this prize
+            const cardBody = input.closest('.card-body');
+            const currentImg = cardBody.querySelector('img, .bg-light');
+            
+            if (currentImg) {
+                if (currentImg.tagName === 'IMG') {
+                    // Update existing image
+                    currentImg.src = e.target.result;
+                } else {
+                    // Replace placeholder with actual image
+                    const newImg = document.createElement('img');
+                    newImg.src = e.target.result;
+                    newImg.className = 'img-thumbnail';
+                    newImg.style = 'width: 60px; height: 60px; object-fit: cover;';
+                    currentImg.parentNode.replaceChild(newImg, currentImg);
+                }
+            }
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
+{% endblock %}

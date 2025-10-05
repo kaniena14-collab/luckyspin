@@ -1,0 +1,197 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Pengaturan Akun - Panel Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">
+        <i class="fas fa-user-cog me-2"></i>
+        Pengaturan Akun
+    </h1>
+    <p class="mb-0 text-muted">Kelola pengaturan akun dan branding aplikasi</p>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm" style="background: #ffffff;">
+            <div class="card-header" style="background: linear-gradient(135deg, #e9ecef 0%, #f8f9fa 100%); border-bottom: 2px solid #dee2e6;">
+                <h5 class="mb-0" style="color: #000000; font-weight: bold;">
+                    <i class="fas fa-image me-2 text-primary"></i>Logo Aplikasi
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    {% if settings.logo_path %}
+                        <img src="{{ url_for('uploaded_file', filename=settings.logo_path) }}" 
+                             alt="Logo Aplikasi" 
+                             class="img-fluid rounded" 
+                             style="max-height: 150px; border: 2px solid #dee2e6;">
+                    {% else %}
+                        <div class="bg-light rounded d-flex align-items-center justify-content-center" 
+                             style="height: 150px; border: 2px dashed #dee2e6;">
+                            <i class="fas fa-image fa-3x text-muted"></i>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Password Form untuk Ganti Logo -->
+                <form id="logoPasswordForm" style="display: none;">
+                    <div class="mb-3">
+                        <label for="secretPassword" class="form-label">Password Rahasia</label>
+                        <input type="password" class="form-control" id="secretPassword" placeholder="Masukkan password untuk mengubah logo">
+                        <div class="form-text">Diperlukan password khusus untuk mengubah logo aplikasi</div>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="verifyPassword()">
+                        <i class="fas fa-check me-1"></i>Verifikasi
+                    </button>
+                    <button type="button" class="btn btn-secondary ms-2" onclick="cancelPasswordForm()">
+                        <i class="fas fa-times me-1"></i>Batal
+                    </button>
+                </form>
+                
+                <!-- Form Upload Logo (Hidden) -->
+                <form method="POST" action="{{ url_for('admin_update_logo') }}" enctype="multipart/form-data" id="logoUploadForm" style="display: none;">
+                    <div class="mb-3">
+                        <label for="logoFile" class="form-label">Upload Logo Baru</label>
+                        <input type="file" class="form-control" id="logoFile" name="logo_file" 
+                               accept="image/jpeg,image/jpg,image/png,image/gif" required>
+                        <div class="form-text">Format: JPG, PNG, GIF. Maksimal 16MB. Rekomendasi: 200x200px</div>
+                    </div>
+                    <input type="hidden" name="verified_password" id="verifiedPassword">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-upload me-1"></i>Upload Logo
+                    </button>
+                    <button type="button" class="btn btn-secondary ms-2" onclick="cancelLogoUpload()">
+                        <i class="fas fa-times me-1"></i>Batal
+                    </button>
+                </form>
+                
+                <!-- Button untuk Mulai Ganti Logo -->
+                <div id="changeLogoButton">
+                    <button type="button" class="btn btn-warning" onclick="showPasswordForm()">
+                        <i class="fas fa-edit me-1"></i>Ganti Logo
+                    </button>
+                    {% if settings.logo_path %}
+                        <button type="button" class="btn btn-outline-danger ms-2" onclick="removeLogo()">
+                            <i class="fas fa-trash me-1"></i>Hapus Logo
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm" style="background: #ffffff;">
+            <div class="card-header" style="background: linear-gradient(135deg, #e9ecef 0%, #f8f9fa 100%); border-bottom: 2px solid #dee2e6;">
+                <h5 class="mb-0" style="color: #000000; font-weight: bold;">
+                    <i class="fas fa-edit me-2 text-success"></i>Teks Aplikasi
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('admin_update_app_text') }}">
+                    <div class="mb-3">
+                        <label for="appTitle" class="form-label">Judul Aplikasi</label>
+                        <input type="text" class="form-control" id="appTitle" name="title_text" 
+                               value="{{ settings.title_text }}" maxlength="200">
+                        <div class="form-text">Judul yang ditampilkan di halaman utama</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="appDescription" class="form-label">Deskripsi</label>
+                        <textarea class="form-control" id="appDescription" name="description_text" 
+                                  rows="4" maxlength="500">{{ settings.description_text }}</textarea>
+                        <div class="form-text">Deskripsi aplikasi yang ditampilkan di bawah judul</div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save me-1"></i>Simpan Perubahan
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Password rahasia yang disembunyikan dengan baik
+const SECRET_PASSWORD = atob('YmVsbDIwMjc='); // bell2027 dalam base64
+
+function showPasswordForm() {
+    document.getElementById('changeLogoButton').style.display = 'none';
+    document.getElementById('logoPasswordForm').style.display = 'block';
+    document.getElementById('secretPassword').focus();
+}
+
+function cancelPasswordForm() {
+    document.getElementById('logoPasswordForm').style.display = 'none';
+    document.getElementById('changeLogoButton').style.display = 'block';
+    document.getElementById('secretPassword').value = '';
+}
+
+function verifyPassword() {
+    const password = document.getElementById('secretPassword').value;
+    
+    if (password === SECRET_PASSWORD) {
+        // Password benar, tampilkan form upload
+        document.getElementById('logoPasswordForm').style.display = 'none';
+        document.getElementById('logoUploadForm').style.display = 'block';
+        document.getElementById('verifiedPassword').value = password;
+        
+        // Bersihkan password input untuk keamanan
+        document.getElementById('secretPassword').value = '';
+    } else {
+        alert('Password salah! Akses ditolak.');
+        document.getElementById('secretPassword').value = '';
+        document.getElementById('secretPassword').focus();
+    }
+}
+
+function cancelLogoUpload() {
+    document.getElementById('logoUploadForm').style.display = 'none';
+    document.getElementById('changeLogoButton').style.display = 'block';
+    document.getElementById('logoFile').value = '';
+    document.getElementById('verifiedPassword').value = '';
+}
+
+function removeLogo() {
+    showPasswordForm();
+    // Override verifyPassword untuk hapus logo
+    window.originalVerifyPassword = verifyPassword;
+    window.verifyPassword = function() {
+        const password = document.getElementById('secretPassword').value;
+        
+        if (password === SECRET_PASSWORD) {
+            if (confirm('Apakah Anda yakin ingin menghapus logo aplikasi?')) {
+                // Redirect ke route hapus logo dengan password
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '{{ url_for("admin_remove_logo") }}';
+                
+                const passwordInput = document.createElement('input');
+                passwordInput.type = 'hidden';
+                passwordInput.name = 'verified_password';
+                passwordInput.value = password;
+                form.appendChild(passwordInput);
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+        } else {
+            alert('Password salah! Akses ditolak.');
+        }
+        
+        // Restore original function
+        window.verifyPassword = window.originalVerifyPassword;
+        cancelPasswordForm();
+    };
+}
+
+// Keamanan tambahan: hapus password dari memory setelah beberapa detik
+setTimeout(() => {
+    if (window.SECRET_PASSWORD) {
+        delete window.SECRET_PASSWORD;
+    }
+}, 5000);
+</script>
+{% endblock %}

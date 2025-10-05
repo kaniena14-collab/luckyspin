@@ -1,0 +1,954 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Pengaturan Wheel - Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">
+        <i class="fas fa-cog me-2"></i>
+        Pengaturan Wheel
+    </h1>
+    <p class="mb-0 text-muted">Kustomisasi tampilan, warna, dan fitur Lucky Spin Wheel</p>
+</div>
+
+<div class="d-flex justify-content-end mb-3">
+    <a href="{{ url_for('index') }}" class="btn btn-outline-primary" target="_blank">
+        <i class="fas fa-external-link-alt me-1"></i>Preview Wheel
+    </a>
+</div>
+
+<div class="container-fluid">
+    
+    <!-- Settings Form -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm" style="background: #ffffff;">
+                <div class="card-header" style="background: linear-gradient(135deg, #e9ecef 0%, #f8f9fa 100%); border-bottom: 2px solid #dee2e6;">
+                    <h5 class="mb-0" style="color: #000000; font-weight: bold;">
+                        <i class="fas fa-palette me-2 text-primary"></i>Pengaturan Tampilan
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('admin_update_settings') }}" enctype="multipart/form-data">
+                        <!-- Images Section -->
+                        <h6 class="text-warning mb-3">
+                            <i class="fas fa-image me-2"></i>Images
+                        </h6>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="logo" class="form-label">Brand Logo</label>
+                                <input type="file" class="form-control" id="logo" name="logo" 
+                                       accept=".png,.jpg,.jpeg,.gif,.svg">
+                                <div class="form-text">Recommended: 200x100px, PNG/SVG format</div>
+                                
+                                {% if settings.logo_path %}
+                                <div class="mt-2">
+                                    <small class="text-muted">Current logo:</small><br>
+                                    <img src="{{ url_for('uploaded_file', filename=settings.logo_path) }}" 
+                                         alt="Current logo" class="img-thumbnail mt-1"
+                                         style="max-width: 100px; max-height: 50px; background: transparent;">
+                                    <br><button type="button" class="btn btn-sm btn-outline-danger mt-2" onclick="removeLogo()">
+                                        <i class="fas fa-trash me-1"></i>Hapus Logo
+                                    </button>
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="background" class="form-label">Background Image</label>
+                                <input type="file" class="form-control" id="background" name="background" 
+                                       accept=".png,.jpg,.jpeg,.gif,.svg">
+                                <div class="form-text">Recommended: 1920x1080px, JPG/PNG format</div>
+                                
+                                {% if settings.background_path %}
+                                <div class="mt-2">
+                                    <small class="text-muted">Current background:</small><br>
+                                    <img src="{{ url_for('uploaded_file', filename=settings.background_path) }}" 
+                                         alt="Current background" class="img-thumbnail mt-1"
+                                         style="max-width: 100px; max-height: 60px;">
+                                    <br><button type="button" class="btn btn-sm btn-outline-danger mt-2" onclick="removeBackground()">
+                                        <i class="fas fa-trash me-1"></i>Hapus Background
+                                    </button>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <hr class="border-secondary">
+                        
+                        <!-- Background Music Section -->
+                        <h6 class="text-warning mb-3">
+                            <i class="fas fa-music me-2"></i>Background Music
+                        </h6>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <label for="background_music" class="form-label">File Musik Latar Belakang</label>
+                                <input type="file" class="form-control" id="background_music" name="background_music" 
+                                       accept=".mp3,.wav,.ogg,.m4a,.aac,.flac,.wma,.opus">
+                                <div class="form-text">Format yang didukung: MP3, WAV, OGG, M4A, AAC, FLAC, WMA, OPUS. Maksimum 50MB.</div>
+                                
+                                {% if settings.music_path %}
+                                <div class="mt-2">
+                                    <small class="text-muted">Musik saat ini:</small>
+                                    <div class="d-flex align-items-center gap-3 mt-1">
+                                        <audio controls class="flex-grow-1">
+                                            <source src="{{ url_for('uploaded_file', filename=settings.music_path) }}" type="audio/mpeg">
+                                            Browser Anda tidak mendukung audio.
+                                        </audio>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeMusic()">
+                                            <i class="fas fa-trash me-1"></i>Hapus
+                                        </button>
+                                    </div>
+                                    <small class="text-info mt-1 d-block">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        File: {{ settings.music_path.split('/')[-1] }}
+                                    </small>
+                                </div>
+                                {% else %}
+                                <div class="mt-2">
+                                    <small class="text-muted">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Belum ada musik yang diupload. Musik default akan digunakan jika tersedia.
+                                    </small>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <hr class="border-secondary">
+                        
+                        <!-- Text Customization Section -->
+                        <h6 class="text-warning mb-3">
+                            <i class="fas fa-font me-2"></i>Teks Kustomisasi
+                        </h6>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="title_text" class="form-label">Judul Utama</label>
+                                <input type="text" class="form-control" id="title_text" name="title_text" 
+                                       value="{{ settings.title_text or 'Lucky Spin Wheel' }}" 
+                                       maxlength="200" placeholder="Lucky Spin Wheel">
+                                <div class="form-text">Teks yang muncul di bagian atas halaman</div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="description_text" class="form-label">Deskripsi Roda</label>
+                                <textarea class="form-control" id="description_text" name="description_text" 
+                                         rows="3" maxlength="500" 
+                                         placeholder="Masukkan kode voucher Anda dan putar untuk memenangkan hadiah menarik!">{{ settings.description_text or 'Masukkan kode voucher Anda dan putar untuk memenangkan hadiah menarik!' }}</textarea>
+                                <div class="form-text">Keterangan di bawah judul</div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="description_font_size" class="form-label">Ukuran Font Deskripsi</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="description_font_size" name="description_font_size" 
+                                           value="{{ settings.description_font_size or 18 }}" min="12" max="36" step="1">
+                                    <span class="input-group-text">px</span>
+                                </div>
+                                <div class="form-text">Ukuran font untuk teks deskripsi (12-36px)</div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="description_color" class="form-label">Warna Teks Deskripsi</label>
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="color" class="form-control form-control-color" 
+                                           id="description_color" name="description_color" 
+                                           value="{{ settings.description_color or '#ffffff' }}" style="width: 60px;">
+                                    <input type="text" class="form-control" 
+                                           value="{{ settings.description_color or '#ffffff' }}" 
+                                           id="description_color_text"
+                                           pattern="^#[0-9A-Fa-f]{6}$">
+                                </div>
+                                <div class="form-text">Warna untuk teks deskripsi</div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="back_to_site_url" class="form-label">Link Kembali ke Situs</label>
+                                <input type="url" class="form-control" id="back_to_site_url" name="back_to_site_url" 
+                                       value="{{ settings.back_to_site_url or '' }}" 
+                                       placeholder="https://example.com">
+                                <div class="form-text">URL untuk tombol kembali (kosongkan untuk menyembunyikan)</div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="back_to_site_text" class="form-label">Teks Tombol Kembali</label>
+                                <input type="text" class="form-control" id="back_to_site_text" name="back_to_site_text" 
+                                       value="{{ settings.back_to_site_text or 'Kembali ke Situs' }}" 
+                                       maxlength="100" placeholder="Kembali ke Situs">
+                                <div class="form-text">Teks yang tampil di tombol kembali</div>
+                            </div>
+                        </div>
+                        
+                        <hr class="border-secondary">
+                        
+                        <!-- Colors Section -->
+                        <h6 class="text-warning mb-3">
+                            <i class="fas fa-palette me-2"></i>Colors
+                        </h6>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label for="wheel_color_1" class="form-label">Primary Wheel Color</label>
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="color" class="form-control form-control-color" 
+                                           id="wheel_color_1" name="wheel_color_1" 
+                                           value="{{ settings.wheel_color_1 }}" style="width: 60px;">
+                                    <input type="text" class="form-control" 
+                                           value="{{ settings.wheel_color_1 }}" 
+                                           id="wheel_color_1_text"
+                                           pattern="^#[0-9A-Fa-f]{6}$">
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="wheel_color_2" class="form-label">Secondary Wheel Color</label>
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="color" class="form-control form-control-color" 
+                                           id="wheel_color_2" name="wheel_color_2" 
+                                           value="{{ settings.wheel_color_2 }}" style="width: 60px;">
+                                    <input type="text" class="form-control" 
+                                           value="{{ settings.wheel_color_2 }}" 
+                                           id="wheel_color_2_text"
+                                           pattern="^#[0-9A-Fa-f]{6}$">
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="text_color" class="form-label">Text Color</label>
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="color" class="form-control form-control-color" 
+                                           id="text_color" name="text_color" 
+                                           value="{{ settings.text_color }}" style="width: 60px;">
+                                    <input type="text" class="form-control" 
+                                           value="{{ settings.text_color }}" 
+                                           id="text_color_text"
+                                           pattern="^#[0-9A-Fa-f]{6}$">
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="border_color" class="form-label">Border Color</label>
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="color" class="form-control form-control-color" 
+                                           id="border_color" name="border_color" 
+                                           value="{{ settings.border_color }}" style="width: 60px;">
+                                    <input type="text" class="form-control" 
+                                           value="{{ settings.border_color }}" 
+                                           id="border_color_text"
+                                           pattern="^#[0-9A-Fa-f]{6}$">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr class="border-secondary">
+                        
+                        <!-- Input & Button Colors Section -->
+                        <h6 class="text-warning mb-3">
+                            <i class="fas fa-edit me-2"></i>Warna Input & Tombol
+                        </h6>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label for="input_bg_color" class="form-label">Background Input Voucher</label>
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="color" class="form-control form-control-color" 
+                                           id="input_bg_color" name="input_bg_color" 
+                                           value="{{ settings.input_bg_color or '#ffffff' }}" style="width: 60px;">
+                                    <input type="text" class="form-control" 
+                                           value="{{ settings.input_bg_color or '#ffffff' }}" 
+                                           id="input_bg_color_text"
+                                           pattern="^#[0-9A-Fa-f]{6}$">
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="input_text_color" class="form-label">Warna Teks Input</label>
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="color" class="form-control form-control-color" 
+                                           id="input_text_color" name="input_text_color" 
+                                           value="{{ settings.input_text_color or '#000000' }}" style="width: 60px;">
+                                    <input type="text" class="form-control" 
+                                           value="{{ settings.input_text_color or '#000000' }}" 
+                                           id="input_text_color_text"
+                                           pattern="^#[0-9A-Fa-f]{6}$">
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="button_bg_color" class="form-label">Background Tombol Putar</label>
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="color" class="form-control form-control-color" 
+                                           id="button_bg_color" name="button_bg_color" 
+                                           value="{{ settings.button_bg_color or '#ffc107' }}" style="width: 60px;">
+                                    <input type="text" class="form-control" 
+                                           value="{{ settings.button_bg_color or '#ffc107' }}" 
+                                           id="button_bg_color_text"
+                                           pattern="^#[0-9A-Fa-f]{6}$">
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="button_text_color" class="form-label">Warna Teks Tombol</label>
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="color" class="form-control form-control-color" 
+                                           id="button_text_color" name="button_text_color" 
+                                           value="{{ settings.button_text_color or '#000000' }}" style="width: 60px;">
+                                    <input type="text" class="form-control" 
+                                           value="{{ settings.button_text_color or '#000000' }}" 
+                                           id="button_text_color_text"
+                                           pattern="^#[0-9A-Fa-f]{6}$">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr class="border-secondary">
+                        
+                        <!-- Container & Prize Border Settings Section -->
+                        <h6 class="text-warning mb-3">
+                            <i class="fas fa-palette me-2"></i>Warna Container & Border Hadiah
+                        </h6>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label for="container_bg_color" class="form-label">Warna Background Container</label>
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="color" class="form-control form-control-color" 
+                                           id="container_bg_color" name="container_bg_color" 
+                                           value="{{ settings.container_bg_color or '#1a1a2e' }}" style="width: 60px;">
+                                    <input type="text" class="form-control" 
+                                           value="{{ settings.container_bg_color or '#1a1a2e' }}" 
+                                           id="container_bg_color_text"
+                                           pattern="^#[0-9A-Fa-f]{6}$">
+                                </div>
+                                <div class="form-text">Warna background utama halaman lucky wheel</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="prize_border_gradient_start" class="form-label">Warna Awal Gradient Border Hadiah</label>
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="color" class="form-control form-control-color" 
+                                           id="prize_border_gradient_start" name="prize_border_gradient_start" 
+                                           value="{{ settings.prize_border_gradient_start or '#ff0000' }}" style="width: 60px;">
+                                    <input type="text" class="form-control" 
+                                           value="{{ settings.prize_border_gradient_start or '#ff0000' }}" 
+                                           id="prize_border_gradient_start_text"
+                                           pattern="^#[0-9A-Fa-f]{6}$">
+                                </div>
+                                <div class="form-text">Warna awal untuk border gradient kotak hadiah</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="prize_border_gradient_end" class="form-label">Warna Akhir Gradient Border Hadiah</label>
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="color" class="form-control form-control-color" 
+                                           id="prize_border_gradient_end" name="prize_border_gradient_end" 
+                                           value="{{ settings.prize_border_gradient_end or '#9400d3' }}" style="width: 60px;">
+                                    <input type="text" class="form-control" 
+                                           value="{{ settings.prize_border_gradient_end or '#9400d3' }}" 
+                                           id="prize_border_gradient_end_text"
+                                           pattern="^#[0-9A-Fa-f]{6}$">
+                                </div>
+                                <div class="form-text">Warna akhir untuk border gradient kotak hadiah</div>
+                            </div>
+                        </div>
+                        
+                        <hr class="border-secondary">
+                        
+                        <!-- Popup Settings Section -->
+                        <h6 class="text-warning mb-3">
+                            <i class="fas fa-window-restore me-2"></i>Pengaturan Popup
+                        </h6>
+                        
+                        <div class="row mb-4">
+                            <div class="col-12 mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="popup_enabled" 
+                                           name="popup_enabled" {% if settings.popup_enabled %}checked{% endif %}>
+                                    <label class="form-check-label" for="popup_enabled">
+                                        Aktifkan Popup Setelah Menang
+                                    </label>
+                                </div>
+                                <div class="form-text">Tampilkan popup dengan informasi tambahan setelah pemain menang</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="popup_title" class="form-label">Judul Popup</label>
+                                <input type="text" class="form-control" id="popup_title" name="popup_title" 
+                                       value="{{ settings.popup_title or 'Selamat!' }}" 
+                                       maxlength="200" placeholder="Selamat!">
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="popup_link_text" class="form-label">Teks Tombol Link</label>
+                                <input type="text" class="form-control" id="popup_link_text" name="popup_link_text" 
+                                       value="{{ settings.popup_link_text or 'Kunjungi Sekarang' }}" 
+                                       maxlength="100" placeholder="Kunjungi Sekarang">
+                            </div>
+                            
+                            <div class="col-12 mb-3">
+                                <label for="popup_description" class="form-label">Deskripsi Popup</label>
+                                <textarea class="form-control" id="popup_description" name="popup_description" 
+                                         rows="3" placeholder="Anda telah memenangkan hadiah menarik! Kunjungi situs kami untuk informasi lebih lanjut.">{{ settings.popup_description or '' }}</textarea>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="popup_link_url" class="form-label">Link URL Popup</label>
+                                <input type="url" class="form-control" id="popup_link_url" name="popup_link_url" 
+                                       value="{{ settings.popup_link_url or '' }}" 
+                                       placeholder="https://example.com">
+                                <div class="form-text">URL yang akan dibuka ketika tombol diklik (opsional)</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="popup_image" class="form-label">Gambar Popup</label>
+                                <input type="file" class="form-control" id="popup_image" name="popup_image" 
+                                       accept="image/*">
+                                <div class="form-text">Gambar yang akan ditampilkan di popup (opsional)</div>
+                                {% if settings.popup_image_path %}
+                                <div class="mt-2">
+                                    <img src="{{ url_for('uploaded_file', filename=settings.popup_image_path) }}" 
+                                         alt="Current popup image" class="img-thumbnail" style="max-height: 100px;">
+                                    <div class="form-text">Gambar popup saat ini</div>
+                                    <button type="button" class="btn btn-sm btn-outline-danger mt-2" onclick="removePopupImage()">
+                                        <i class="fas fa-trash me-1"></i>Hapus Gambar Popup
+                                    </button>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <hr class="border-secondary">
+                        
+                        <!-- Aura Glow Settings -->
+                        <h6 class="text-warning mb-3">
+                            <i class="fas fa-magic me-2"></i>Efek Aura Glow
+                        </h6>
+                        
+                        <div class="row mb-4">
+                            <div class="col-12 mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="glow_enabled" 
+                                           name="glow_enabled" checked>
+                                    <label class="form-check-label" for="glow_enabled">
+                                        Aktifkan Efek Aura Glow
+                                    </label>
+                                </div>
+                                <div class="form-text">Tampilkan efek cahaya di belakang roda wheel</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="glow_color" class="form-label">Warna Aura</label>
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="color" class="form-control form-control-color" 
+                                           id="glow_color" name="glow_color" 
+                                           value="#FF6B6B" style="width: 60px;">
+                                    <input type="text" class="form-control" 
+                                           value="#FF6B6B" 
+                                           id="glow_color_text"
+                                           pattern="^#[0-9A-Fa-f]{6}$">
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="glow_intensity" class="form-label">Intensitas Aura (0-100)</label>
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="range" class="form-range" id="glow_intensity" name="glow_intensity" 
+                                           min="0" max="100" value="50">
+                                    <span class="badge bg-secondary" id="glow_intensity_value">50</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr class="border-secondary">
+                        
+                        <!-- Center Button Settings -->
+                        <h6 class="text-warning mb-3">
+                            <i class="fas fa-dot-circle me-2"></i>Tombol Putar Tengah
+                        </h6>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label for="center_button_bg_color" class="form-label">Warna Background Tombol</label>
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="color" class="form-control form-control-color" 
+                                           id="center_button_bg_color" name="center_button_bg_color" 
+                                           value="{{ settings.center_button_bg_color or '#ffd700' }}" style="width: 60px;">
+                                    <input type="text" class="form-control" 
+                                           value="{{ settings.center_button_bg_color or '#ffd700' }}" 
+                                           id="center_button_bg_color_text"
+                                           pattern="^#[0-9A-Fa-f]{6}$">
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="center_button_text_color" class="form-label">Warna Teks Tombol</label>
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="color" class="form-control form-control-color" 
+                                           id="center_button_text_color" name="center_button_text_color" 
+                                           value="{{ settings.center_button_text_color or '#000000' }}" style="width: 60px;">
+                                    <input type="text" class="form-control" 
+                                           value="{{ settings.center_button_text_color or '#000000' }}" 
+                                           id="center_button_text_color_text"
+                                           pattern="^#[0-9A-Fa-f]{6}$">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr class="border-secondary">
+                        
+                        <!-- Back Button & Prize Border Settings -->
+                        <h6 class="text-warning mb-3">
+                            <i class="fas fa-arrow-left me-2"></i>Tombol Kembali & Border Hadiah
+                        </h6>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label for="back_button_bg_color" class="form-label">Warna Background Tombol Kembali</label>
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="color" class="form-control form-control-color" 
+                                           id="back_button_bg_color" name="back_button_bg_color" 
+                                           value="{{ settings.back_button_bg_color or '#007bff' }}" style="width: 60px;">
+                                    <input type="text" class="form-control" 
+                                           value="{{ settings.back_button_bg_color or '#007bff' }}" 
+                                           id="back_button_bg_color_text"
+                                           pattern="^#[0-9A-Fa-f]{6}$">
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="back_button_text_color" class="form-label">Warna Teks Tombol Kembali</label>
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="color" class="form-control form-control-color" 
+                                           id="back_button_text_color" name="back_button_text_color" 
+                                           value="{{ settings.back_button_text_color or '#ffffff' }}" style="width: 60px;">
+                                    <input type="text" class="form-control" 
+                                           value="{{ settings.back_button_text_color or '#ffffff' }}" 
+                                           id="back_button_text_color_text"
+                                           pattern="^#[0-9A-Fa-f]{6}$">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label for="prize_border_color" class="form-label">Warna Border Hadiah</label>
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="color" class="form-control form-control-color" 
+                                           id="prize_border_color" name="prize_border_color" 
+                                           value="{{ settings.prize_border_color or '#ffffff' }}" style="width: 60px;">
+                                    <input type="text" class="form-control" 
+                                           value="{{ settings.prize_border_color or '#ffffff' }}" 
+                                           id="prize_border_color_text"
+                                           pattern="^#[0-9A-Fa-f]{6}$">
+                                </div>
+                                <div class="form-text">Border untuk kotak hadiah di bagian bawah</div>
+                            </div>
+                        </div>
+                        
+                        <hr class="border-secondary">
+                        
+                        <!-- Preset Color Schemes -->
+                        <h6 class="text-warning mb-3">
+                            <i class="fas fa-swatchbook me-2"></i>Color Presets
+                        </h6>
+                        
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="d-flex flex-wrap gap-2">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" 
+                                            onclick="applyColorScheme('#FF6B6B', '#4ECDC4', '#FFFFFF', '#333333')">
+                                        Default
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" 
+                                            onclick="applyColorScheme('#FFD93D', '#FF8C42', '#000000', '#8B4513')">
+                                        Sunset
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" 
+                                            onclick="applyColorScheme('#4285F4', '#34A853', '#FFFFFF', '#1A73E8')">
+                                        Ocean
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" 
+                                            onclick="applyColorScheme('#9C27B0', '#E91E63', '#FFFFFF', '#673AB7')">
+                                        Purple
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" 
+                                            onclick="applyColorScheme('#FF5722', '#795548', '#FFFFFF', '#3E2723')">
+                                        Earthy
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr class="border-secondary">
+                        
+                        <!-- Audio Settings Section -->
+                        <h6 class="text-warning mb-3">
+                            <i class="fas fa-volume-up me-2"></i>Pengaturan Audio
+                        </h6>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label for="background_music" class="form-label">Background Music</label>
+                                <input type="file" class="form-control" id="background_music" name="background_music" 
+                                       accept="audio/*">
+                                <div class="form-text">File audio untuk background musik (MP3, WAV, WEBA, max 50MB)</div>
+                                {% if settings.music_path %}
+                                <div class="mt-2">
+                                    <audio controls class="w-100">
+                                        <source src="{{ url_for('uploaded_file', filename=settings.music_path) }}" type="audio/mpeg">
+                                        Your browser does not support the audio element.
+                                    </audio>
+                                    <div class="form-text">Background musik saat ini: {{ settings.music_path }}</div>
+                                    <button type="button" class="btn btn-sm btn-outline-danger mt-2" onclick="removeMusic()">
+                                        <i class="fas fa-trash me-1"></i>Hapus Background Music
+                                    </button>
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="spin_sound" class="form-label">Sound Effect Spin</label>
+                                <input type="file" class="form-control" id="spin_sound" name="spin_sound" 
+                                       accept="audio/*">
+                                <div class="form-text">File audio untuk sound effect saat wheel berputar (MP3, WAV, WEBA, max 10MB)</div>
+                                {% if settings.spin_sound_path %}
+                                <div class="mt-2">
+                                    <audio controls class="w-100">
+                                        <source src="{{ url_for('uploaded_file', filename=settings.spin_sound_path) }}" type="audio/mpeg">
+                                        Your browser does not support the audio element.
+                                    </audio>
+                                    <div class="form-text">Spin sound saat ini: {{ settings.spin_sound_path }}</div>
+                                    <button type="button" class="btn btn-sm btn-outline-danger mt-2" onclick="removeSpinSound()">
+                                        <i class="fas fa-trash me-1"></i>Hapus Spin Sound
+                                    </button>
+                                </div>
+                                {% else %}
+                                <div class="mt-2">
+                                    <audio controls class="w-100">
+                                        <source src="{{ url_for('static', filename='sounds/default_spin.weba') }}" type="audio/webm">
+                                        Your browser does not support the audio element.
+                                    </audio>
+                                    <div class="form-text">Menggunakan default spin sound</div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Submit Button -->
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-save me-2"></i>Save Settings
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Preview Panel -->
+        <div class="col-lg-4">
+            <div class="card bg-dark border-secondary sticky-top">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-eye me-2"></i>Live Preview
+                    </h6>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <canvas id="previewCanvas" width="200" height="200" 
+                                class="border border-2 rounded-circle"
+                                style="border-color: {{ settings.border_color }} !important;">
+                        </canvas>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {% if settings.logo_path %}
+                        <img src="{{ url_for('uploaded_file', filename=settings.logo_path) }}" 
+                             alt="Logo" class="img-fluid" style="max-height: 40px;">
+                        {% else %}
+                        <span class="text-muted">No logo set</span>
+                        {% endif %}
+                    </div>
+                    
+                    <small class="text-muted">
+                        Colors will update in real-time as you change them. Save to apply changes to the live wheel.
+                    </small>
+                </div>
+            </div>
+            
+            <!-- Tips -->
+            <div class="card bg-dark border-secondary mt-3">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-lightbulb me-2"></i>Tips
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0 small">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Use contrasting colors for better readability
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            SVG logos scale better than raster images
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Keep background images under 2MB for faster loading
+                        </li>
+                        <li class="mb-0">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Test your wheel on different devices
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Sync color pickers with text inputs
+function setupColorSync(colorId, textId) {
+    const colorInput = document.getElementById(colorId);
+    const textInput = document.getElementById(textId);
+    
+    colorInput.addEventListener('input', function() {
+        textInput.value = this.value;
+        updatePreview();
+    });
+    
+    textInput.addEventListener('input', function() {
+        if (this.value.match(/^#[0-9A-Fa-f]{6}$/)) {
+            colorInput.value = this.value;
+            updatePreview();
+        }
+    });
+}
+
+// Setup color synchronization
+setupColorSync('wheel_color_1', 'wheel_color_1_text');
+setupColorSync('wheel_color_2', 'wheel_color_2_text');
+setupColorSync('text_color', 'text_color_text');
+setupColorSync('border_color', 'border_color_text');
+
+// Apply color scheme preset
+function applyColorScheme(color1, color2, textColor, borderColor) {
+    document.getElementById('wheel_color_1').value = color1;
+    document.getElementById('wheel_color_1_text').value = color1;
+    document.getElementById('wheel_color_2').value = color2;
+    document.getElementById('wheel_color_2_text').value = color2;
+    document.getElementById('text_color').value = textColor;
+    document.getElementById('text_color_text').value = textColor;
+    document.getElementById('border_color').value = borderColor;
+    document.getElementById('border_color_text').value = borderColor;
+    updatePreview();
+}
+
+// Update preview canvas
+function updatePreview() {
+    const canvas = document.getElementById('previewCanvas');
+    const ctx = canvas.getContext('2d');
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const radius = 90;
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Get current colors
+    const color1 = document.getElementById('wheel_color_1').value;
+    const color2 = document.getElementById('wheel_color_2').value;
+    const textColor = document.getElementById('text_color').value;
+    const borderColor = document.getElementById('border_color').value;
+    
+    // Draw sample wheel segments
+    const segments = 6;
+    const anglePerSegment = (2 * Math.PI) / segments;
+    
+    for (let i = 0; i < segments; i++) {
+        const startAngle = i * anglePerSegment - Math.PI / 2;
+        const endAngle = (i + 1) * anglePerSegment - Math.PI / 2;
+        
+        // Alternate colors
+        ctx.fillStyle = i % 2 === 0 ? color1 : color2;
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Draw segment border
+        ctx.strokeStyle = borderColor;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        
+        // Add sample text
+        ctx.fillStyle = textColor;
+        ctx.font = '10px sans-serif';
+        ctx.textAlign = 'center';
+        
+        const textAngle = startAngle + anglePerSegment / 2;
+        const textX = centerX + Math.cos(textAngle) * (radius * 0.7);
+        const textY = centerY + Math.sin(textAngle) * (radius * 0.7);
+        
+        ctx.save();
+        ctx.translate(textX, textY);
+        ctx.rotate(textAngle + Math.PI / 2);
+        ctx.fillText('Prize ' + (i + 1), 0, 0);
+        ctx.restore();
+    }
+    
+    // Draw center circle
+    ctx.fillStyle = '#333';
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 15, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.strokeStyle = borderColor;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
+    // Update canvas border color
+    canvas.style.borderColor = borderColor;
+}
+
+// Initial preview
+updatePreview();
+
+// Preview uploaded images
+document.getElementById('logo').addEventListener('change', function(e) {
+    previewImage(e.target, 'logoPreview', 100, 50);
+});
+
+document.getElementById('background').addEventListener('change', function(e) {
+    previewImage(e.target, 'backgroundPreview', 150, 90);
+});
+
+function previewImage(input, previewId, maxWidth, maxHeight) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            let preview = document.getElementById(previewId);
+            if (!preview) {
+                preview = document.createElement('img');
+                preview.id = previewId;
+                preview.className = 'img-thumbnail mt-2 d-block';
+                preview.style = `max-width: ${maxWidth}px; max-height: ${maxHeight}px;`;
+                input.parentNode.appendChild(preview);
+            }
+            preview.src = e.target.result;
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// Functions to remove images
+function removeLogo() {
+    if (confirm('Apakah Anda yakin ingin menghapus logo?')) {
+        fetch('{{ url_for("admin_remove_image") }}', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({type: 'logo'})
+        }).then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        });
+    }
+}
+
+function removeBackground() {
+    if (confirm('Apakah Anda yakin ingin menghapus background?')) {
+        fetch('{{ url_for("admin_remove_image") }}', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({type: 'background'})
+        }).then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        });
+    }
+}
+
+function removePopupImage() {
+    if (confirm('Apakah Anda yakin ingin menghapus gambar popup?')) {
+        fetch('{{ url_for("admin_remove_image") }}', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({type: 'popup_image'})
+        }).then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        });
+    }
+}
+
+function removeMusic() {
+    if (confirm('Apakah Anda yakin ingin menghapus file musik?')) {
+        fetch('{{ url_for("admin_remove_image") }}', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({type: 'music'})
+        }).then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        });
+    }
+}
+
+function removeSpinSound() {
+    if (confirm('Apakah Anda yakin ingin menghapus spin sound?')) {
+        fetch('{{ url_for("admin_remove_image") }}', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({type: 'spin_sound'})
+        }).then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        });
+    }
+}
+
+// Setup additional color synchronization for all color fields
+setupColorSync('glow_color', 'glow_color_text');
+setupColorSync('center_button_bg_color', 'center_button_bg_color_text');
+setupColorSync('center_button_text_color', 'center_button_text_color_text');
+setupColorSync('back_button_bg_color', 'back_button_bg_color_text');
+setupColorSync('back_button_text_color', 'back_button_text_color_text');
+setupColorSync('prize_border_color', 'prize_border_color_text');
+
+// Handle glow intensity slider
+document.getElementById('glow_intensity').addEventListener('input', function() {
+    document.getElementById('glow_intensity_value').textContent = this.value;
+});
+</script>
+{% endblock %}

@@ -1,0 +1,535 @@
+/* Custom CSS for Lucky Spin Wheel */
+
+/* Global Styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    min-height: 100vh;
+}
+
+/* Simple Wheel Animation */
+.wheel-spinning {
+    animation: spin 5s cubic-bezier(0.15, 0.25, 0.25, 0.95) forwards;
+    transform-origin: center center;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(var(--final-rotation, 1800deg)); }
+}
+
+/* Glow Effects */
+.wheel-container {
+    position: relative;
+}
+
+/* Border gradient untuk hadiah tersedia - ukuran persegi 4px */
+.prize-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.prize-card::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    background: linear-gradient(45deg, var(--prize-border-start, #ff0000), var(--prize-border-end, #9400d3));
+    background-size: 200% 200%;
+    z-index: -1;
+    border-radius: 8px;
+    animation: rainbow-border 3s linear infinite;
+}
+
+@keyframes rainbow-border {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Lightweight Button Styles */
+.btn-spin {
+    background: #ffd700;
+    border: none;
+    color: #000;
+    font-weight: bold;
+    transition: background-color 0.2s ease;
+}
+
+.btn-spin:hover {
+    background: #ffed4e;
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.2);
+}
+
+.btn-spin:active {
+    background: #e6c200;
+}
+
+/* Enhanced Prize Cards dengan border pelangi */
+.prize-card {
+    transition: all 0.2s ease;
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid transparent;
+    position: relative;
+    z-index: 1;
+}
+
+.prize-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(255, 215, 0, 0.2);
+}
+
+/* Lightweight Modal */
+.modal-content {
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+    background: #ffd700;
+    color: #000;
+}
+
+.modal-header .btn-close {
+    filter: invert(1);
+}
+
+/* Form Enhancements */
+.form-control:focus {
+    border-color: #ffd700;
+    box-shadow: 0 0 0 0.25rem rgba(255, 215, 0, 0.25);
+}
+
+.form-select:focus {
+    border-color: #ffd700;
+    box-shadow: 0 0 0 0.25rem rgba(255, 215, 0, 0.25);
+}
+
+/* Table Enhancements */
+.table-dark {
+    --bs-table-bg: rgba(0, 0, 0, 0.3);
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(255, 215, 0, 0.1);
+}
+
+/* Badge Styles */
+.badge {
+    font-size: 0.75em;
+    padding: 0.375rem 0.75rem;
+}
+
+/* Lightweight Card Effects for Admin */
+.card {
+    transition: box-shadow 0.2s ease;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Navigation */
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+/* Lightweight Statistics Cards */
+.stats-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: background-color 0.2s ease;
+}
+
+.stats-card:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* Color Picker Styling */
+.form-control-color {
+    width: 60px !important;
+    height: 38px !important;
+    padding: 2px;
+    border: 2px solid #495057;
+    border-radius: 6px;
+}
+
+/* Progress Bar for Probability */
+.probability-bar {
+    height: 6px;
+    background: linear-gradient(90deg, #dc3545 0%, #ffc107 50%, #198754 100%);
+    border-radius: 3px;
+    margin-top: 4px;
+}
+
+/* Enhanced Wheel Styling */
+.wheel-container {
+    position: relative;
+    display: inline-block;
+    margin: 2rem 0;
+}
+
+/* Remove border from wheel canvas */
+.wheel-canvas {
+    border: none !important;
+}
+
+/* Mobile specific improvements */
+@media (max-width: 768px) {
+    /* Ensure proper spacing */
+    .wheel-full-container {
+        margin-top: 30px !important;
+        margin-bottom: 20px;
+    }
+    
+    /* Better input visibility and clickability */
+    .mobile-voucher-form {
+        margin-bottom: 30px !important;
+        padding: 0 15px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding-top: 20px;
+        padding-bottom: 20px;
+    }
+    
+    .voucher-input {
+        background: white !important;
+        color: black !important;
+        border: 3px solid #ddd !important;
+        border-radius: 10px !important;
+        padding: 15px !important;
+        font-size: 18px !important;
+        font-weight: 500;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .voucher-input:focus {
+        border-color: #ffd700 !important;
+        box-shadow: 0 0 0 4px rgba(255, 215, 0, 0.3), 0 4px 12px rgba(0,0,0,0.2) !important;
+        transform: translateY(-1px);
+    }
+}
+
+.wheel-glow-ring {
+    display: none;
+}
+
+@keyframes rainbow-glow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+@keyframes pulse-ring {
+    0% { transform: scale(0.95); opacity: 0.4; }
+    100% { transform: scale(1.05); opacity: 0.8; }
+}
+
+.wheel-canvas {
+    position: relative;
+    z-index: 5;
+    background: transparent;
+}
+
+.wheel-pointer {
+    z-index: 10;
+}
+
+.pointer-container {
+    position: relative;
+}
+
+.pointer-glow {
+    display: none;
+}
+
+@keyframes pointer-pulse {
+    0% { transform: translateX(-50%) scale(0.8); opacity: 0.6; }
+    100% { transform: translateX(-50%) scale(1.2); opacity: 1; }
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .wheel-container {
+        padding: 1rem;
+        margin: 1rem 0;
+    }
+    
+    .wheel-canvas {
+        max-width: 380px !important;
+        max-height: 380px !important;
+        width: auto !important;
+        height: auto !important;
+    }
+    
+    /* Fix mobile input clickability - Enhanced */
+    .form-control {
+        -webkit-appearance: none;
+        -webkit-user-select: text;
+        user-select: text;
+        touch-action: manipulation;
+        font-size: 18px !important; /* Prevent zoom on iOS */
+        min-height: 50px;
+        -webkit-tap-highlight-color: rgba(255, 215, 0, 0.3);
+    }
+    
+    .voucher-input {
+        -webkit-appearance: none !important;
+        -moz-appearance: textfield;
+        appearance: none !important;
+        -webkit-user-select: text !important;
+        -webkit-touch-callout: default !important;
+        -webkit-tap-highlight-color: rgba(255, 215, 0, 0.5) !important;
+        pointer-events: auto !important;
+        cursor: text !important;
+        z-index: 999;
+        position: relative;
+    }
+    
+    .voucher-input:focus {
+        -webkit-user-select: text !important;
+        outline: 2px solid #ffd700 !important;
+        outline-offset: 2px;
+    }
+    
+    .btn {
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+    }
+    
+    /* Ensure input area is accessible */
+    .mobile-voucher-form {
+        z-index: 1000;
+        position: relative;
+    }
+    
+    .input-group {
+        z-index: 999;
+        position: relative;
+    }
+    
+    .wheel-glow-ring {
+        top: -15px;
+        left: -15px;
+        right: -15px;
+        bottom: -15px;
+    }
+    
+    .btn-group {
+        flex-direction: column;
+    }
+    
+    .btn-group .btn {
+        border-radius: 0.375rem !important;
+        margin-bottom: 0.25rem;
+    }
+    
+    .stats-card {
+        margin-bottom: 1rem;
+    }
+    
+    .triangle-pointer {
+        border-left-width: 14px !important;
+        border-right-width: 14px !important;
+        border-top-width: 24px !important;
+    }
+}
+
+/* Animation for prize reveal */
+@keyframes prizeReveal {
+    0% {
+        opacity: 0;
+        transform: scale(0.5) rotateY(180deg);
+    }
+    50% {
+        opacity: 0.7;
+        transform: scale(1.1) rotateY(90deg);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) rotateY(0deg);
+    }
+}
+
+.prize-reveal {
+    animation: prizeReveal 0.8s ease-out;
+}
+
+/* Loading States */
+.btn-loading {
+    position: relative;
+    color: transparent !important;
+}
+
+.btn-loading::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    top: 50%;
+    left: 50%;
+    margin-left: -10px;
+    margin-top: -10px;
+    border: 2px solid transparent;
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: spin-loader 1s linear infinite;
+}
+
+@keyframes spin-loader {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Pulse Animation for Important Elements */
+.pulse-glow {
+    animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+    0%, 100% {
+        box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+    }
+}
+
+/* Triangular pointer styling */
+.triangle-pointer {
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+/* Lightweight Alert Messages */
+.alert {
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+.alert-success {
+    background: #198754;
+    color: white;
+}
+
+.alert-danger {
+    background: #dc3545;
+    color: white;
+}
+
+.alert-warning {
+    background: #ffc107;
+    color: #000;
+}
+
+.alert-info {
+    background: #0dcaf0;
+    color: white;
+}
+
+/* File upload styling */
+.form-control[type="file"] {
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 2px dashed rgba(255, 255, 255, 0.3);
+    padding: 1rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.form-control[type="file"]:hover {
+    border-color: #ffd700;
+    background-color: rgba(255, 215, 0, 0.1);
+}
+
+/* Code styling for voucher codes */
+code {
+    background-color: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+}
+
+/* Sticky top offset for admin panels */
+.sticky-top {
+    top: 1rem;
+}
+
+/* Center Button Pulse Animation */
+.spin-center-btn {
+    position: relative;
+    overflow: visible;
+    transition: all 0.3s ease;
+    animation: center-btn-pulse 2s ease-in-out infinite alternate;
+}
+
+.spin-center-btn:before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: -8px;
+    right: -8px;
+    bottom: -8px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--btn-glow-color, #ffd700) 0%, transparent 70%);
+    opacity: 0.6;
+    z-index: -1;
+    animation: btn-aura-pulse 2s ease-in-out infinite alternate;
+}
+
+.spin-center-btn:after {
+    content: '';
+    position: absolute;
+    top: -15px;
+    left: -15px;
+    right: -15px;
+    bottom: -15px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--btn-glow-color, #ffd700) 0%, transparent 50%);
+    opacity: 0.3;
+    z-index: -2;
+    animation: btn-aura-pulse 2s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes center-btn-pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 
+            0 0 10px var(--btn-glow-color, #ffd700),
+            0 0 20px var(--btn-glow-color, #ffd700),
+            0 0 30px var(--btn-glow-color, #ffd700);
+    }
+    100% {
+        transform: scale(1.05);
+        box-shadow: 
+            0 0 15px var(--btn-glow-color, #ffd700),
+            0 0 30px var(--btn-glow-color, #ffd700),
+            0 0 40px var(--btn-glow-color, #ffd700);
+    }
+}
+
+@keyframes btn-aura-pulse {
+    0% {
+        transform: scale(1);
+        opacity: 0.3;
+    }
+    100% {
+        transform: scale(1.1);
+        opacity: 0.7;
+    }
+}
+
+.spin-center-btn:hover {
+    transform: scale(1.1) !important;
+    animation-play-state: paused;
+}
+
+.spin-center-btn:active {
+    transform: scale(0.95) !important;
+}

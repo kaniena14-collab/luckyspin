@@ -1,0 +1,723 @@
+{% extends "base.html" %}
+
+{% block title %}Lucky Spin Wheel - Try Your Luck!{% endblock %}
+
+{% block extra_head %}
+<style>
+    :root {
+        --prize-border-start: {{ settings.prize_border_gradient_start or '#ff0000' }};
+        --prize-border-end: {{ settings.prize_border_gradient_end or '#9400d3' }};
+        --container-bg-color: {{ settings.container_bg_color or '#1a1a2e' }};
+    }
+    
+    body {
+        {% if settings.background_path %}
+        background-image: url("{{ url_for('uploaded_file', filename=settings.background_path) }}");
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        {% else %}
+        background: linear-gradient(135deg, var(--container-bg-color) 0%, #16213e 100%);
+        {% endif %}
+        min-height: 100vh;
+    }
+    
+    .spin-container {
+        background: transparent;
+    }
+    
+    /* Vertical Title Layout */
+    .title-vertical {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .title-stacked {
+        line-height: 1.1;
+        text-align: center;
+    }
+    
+    .title-stacked div {
+        display: block;
+        margin: 2px 0;
+    }
+    
+    .wheel-full-container {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 400px;
+        margin-top: 5px;
+        margin-bottom: 15px;
+        position: relative;
+    }
+    
+    .wheel-container {
+        width: 100%;
+        max-width: 450px;
+        position: relative;
+    }
+    
+    .wheel-container canvas {
+        width: 100% !important;
+        height: auto !important;
+    }
+    
+    /* Aura Glow Effect - Exactly matching wheel border */
+    .wheel-aura {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        z-index: -1;
+        background: radial-gradient(circle, {{ settings.glow_color or '#FF6B6B' }}{{ (settings.glow_intensity or 50) | int * 0.01 * 0.4 | round(2) }}0 0%, {{ settings.glow_color or '#FF6B6B' }}{{ (settings.glow_intensity or 50) | int * 0.01 * 0.2 | round(2) }}0 30%, transparent 70%);
+        box-shadow: 
+            0 0 20px {{ settings.glow_color or '#FF6B6B' }}{{ (settings.glow_intensity or 50) | int * 0.01 * 0.8 | round(2) }}0,
+            0 0 40px {{ settings.glow_color or '#FF6B6B' }}{{ (settings.glow_intensity or 50) | int * 0.01 * 0.6 | round(2) }}0,
+            0 0 60px {{ settings.glow_color or '#FF6B6B' }}{{ (settings.glow_intensity or 50) | int * 0.01 * 0.4 | round(2) }}0;
+        animation: glow-pulse 3s ease-in-out infinite alternate;
+    }
+    
+    /* Mobile voucher input improvements */
+    @media (max-width: 768px) {
+        .mobile-voucher-form {
+            margin-bottom: 40px !important;
+            padding: 0 20px;
+        }
+        
+        .mobile-voucher-form input {
+            min-height: 50px;
+            font-size: 18px !important;
+            padding: 12px 16px;
+            -webkit-appearance: none;
+            border-radius: 8px;
+            border: 2px solid #ddd;
+            background-color: white;
+            color: black;
+        }
+        
+        .mobile-voucher-form input:focus {
+            border-color: #ffd700;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.3);
+        }
+        
+        .wheel-full-container {
+            margin-top: 40px;
+        }
+    }
+    
+    @keyframes glow-pulse {
+        0% {
+            opacity: 0.7;
+            transform: translate(-50%, -50%) scale(1);
+        }
+        100% {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1.05);
+        }
+    }
+    
+    /* Prize cards with customizable borders */
+    .prize-card {
+        background: rgba(255,255,255,0.05) !important;
+        border: 2px solid {{ settings.prize_border_color or '#ffffff' }} !important;
+        border-radius: 8px !important;
+        transition: transform 0.2s ease;
+    }
+    
+    .prize-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2) !important;
+    }
+    
+    /* Performance Optimizations */
+    * {
+        will-change: auto;
+    }
+    
+    .wheel-canvas {
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
+    }
+    
+    @media (max-width: 768px) {
+        /* Ultra-lightweight mobile optimization */
+        .container-fluid {
+            padding: 0.25rem !important;
+        }
+        
+        .title-stacked {
+            font-size: 1.4rem !important;
+        }
+        
+        .small {
+            font-size: 0.75rem !important;
+            margin-bottom: 0.25rem !important;
+        }
+        
+        /* Compact wheel for mobile */
+        .wheel-full-container {
+            min-height: 50vh;
+            padding: 0 2px;
+            margin: 5px 0 !important;
+        }
+        
+        .wheel-container {
+            width: 100%;
+            max-width: 85vw;
+        }
+        
+        .wheel-container canvas {
+            width: 100% !important;
+            height: auto !important;
+            max-width: 85vw;
+            max-height: 85vw;
+        }
+        
+        /* Compact input */
+        .mobile-voucher-form {
+            margin: 8px 0 !important;
+            padding: 0 10px;
+        }
+        
+        /* Smaller prize grid */
+        .prize-grid .col-md-3 {
+            flex: 0 0 50%;
+            max-width: 50%;
+            padding: 2px;
+        }
+        
+        .prize-card {
+            margin-bottom: 4px !important;
+            padding: 8px !important;
+        }
+        
+        .spin-container {
+            padding: 0.25rem !important;
+        }
+        
+        /* Minimal buttons */
+        .btn-lg {
+            padding: 0.5rem 0.75rem !important;
+            font-size: 0.9rem !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-2 py-1">
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <div class="spin-container p-1">
+                <!-- Vertical Header Layout -->
+                <div class="text-center mb-1">
+                    {% if settings.logo_path %}
+                    <img src="{{ url_for('uploaded_file', filename=settings.logo_path) }}" 
+                         alt="Logo" class="img-fluid mb-1" style="max-height: 60px; background: transparent;">
+                    {% endif %}
+                    <div class="title-vertical">
+                        <h1 class="h3 text-white mb-1 title-stacked">
+                            <div><i class="fas fa-dharmachakra text-warning"></i></div>
+                            <div class="mt-1">{{ (settings.title_text or 'Lucky Spin Wheel').split(' ')[0] }}</div>
+                            {% if (settings.title_text or 'Lucky Spin Wheel').split(' ')|length > 1 %}
+                            <div>{{ (settings.title_text or 'Lucky Spin Wheel').split(' ', 1)[1] }}</div>
+                            {% endif %}
+                        </h1>
+                    </div>
+                    <p class="small mb-1" style="color: {{ settings.description_color or '#ffffff' }}; font-size: {{ (settings.description_font_size or 16) - 4 }}px;">{{ settings.description_text or 'Putar dan menangkan hadiah!' }}</p>
+                </div>
+
+                <!-- Sound Control Only (keep position) -->
+                <div class="position-fixed top-0 end-0 m-3" style="z-index: 1000;">
+                    <button id="musicToggle" class="btn btn-outline-light btn-sm" title="Toggle Music">
+                        <i id="musicIcon" class="fas fa-volume-mute"></i>
+                    </button>
+                </div>
+
+                <!-- Voucher Input -->
+                <div class="row justify-content-center mb-4 mobile-voucher-form">
+                    <div class="col-md-6 col-lg-5">
+                        <form id="spinForm">
+                            <div class="input-group input-group-lg">
+                                <input type="text" 
+                                       id="voucherCode" 
+                                       class="form-control voucher-input" 
+                                       placeholder="Masukkan kode voucher"
+                                       maxlength="20"
+                                       autocomplete="off"
+                                       inputmode="text"
+                                       style="background-color: {{ settings.input_bg_color or '#ffffff' }}; color: {{ settings.input_text_color or '#000000' }}; border-color: {{ settings.input_bg_color or '#ffffff' }}; font-size: 18px; min-height: 50px;"
+                                       required>
+                            </div>
+                            <div class="text-center mt-3">
+                                <small class="text-light opacity-75">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Masukkan kode voucher lalu tekan tombol PUTAR di tengah roda
+                                </small>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Wheel Container - Raised Higher -->
+                <div class="wheel-full-container" style="margin-top: -10px !important;">
+                        <div class="position-relative wheel-container">
+                            
+                            <!-- Aura Glow Effect -->
+                            <div class="wheel-aura"></div>
+                            
+                            <!-- Wheel Canvas -->
+                            <canvas id="wheelCanvas" 
+                                    class="wheel-canvas rounded-circle shadow-lg"
+                                    style="max-width: 100%; height: auto;">
+                            </canvas>
+                            
+                            <!-- Center Spin Button -->
+                            <div class="position-absolute top-50 start-50 translate-middle" style="z-index: 20;">
+                                <button type="button" 
+                                        class="btn rounded-circle d-flex align-items-center justify-content-center shadow spin-center-btn"
+                                        id="centerSpinBtn"
+                                        style="width: 80px; height: 80px; background-color: {{ settings.center_button_bg_color or '#ffd700' }}; color: {{ settings.center_button_text_color or '#000000' }}; border: 4px solid {{ settings.border_color }}; font-size: 14px; font-weight: bold; --btn-glow-color: {{ settings.center_button_bg_color or '#ffd700' }};">
+                                    <div class="text-center">
+                                        <i class="fas fa-play mb-1"></i><br>
+                                        <small>PUTAR</small>
+                                    </div>
+                                </button>
+                            </div>
+                            
+                            <!-- Enhanced Pointer -->
+                            <div class="position-absolute top-0 start-50 translate-middle-x wheel-pointer"
+                                 style="margin-top: -15px; z-index: 10;">
+                                <div class="pointer-container">
+                                    <div class="pointer-glow"></div>
+                                    <div class="triangle-pointer"
+                                         style="width: 0; height: 0; 
+                                                border-left: 18px solid transparent;
+                                                border-right: 18px solid transparent;
+                                                border-top: 30px solid #ff1744;
+                                                filter: drop-shadow(0 4px 8px rgba(255, 23, 68, 0.5));">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                </div>
+
+                <!-- Prize Display -->
+                <div id="prizeResult" class="text-center mt-4" style="display: none;">
+                    <div class="alert alert-success alert-lg">
+                        <h3 class="mb-3">🎉 Selamat! 🎉</h3>
+                        <div id="prizeDetails">
+                            <!-- Prize details will be inserted here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Back to Site Button - Filled Style -->
+                {% if settings.back_to_site_url %}
+                <div class="row justify-content-center mt-3 mb-3">
+                    <div class="col-md-6 col-lg-5">
+                        <a href="{{ settings.back_to_site_url }}" class="btn btn-lg w-100" style="min-height: 50px; font-size: 18px; border-radius: 10px; background-color: {{ settings.back_button_bg_color or '#007bff' }}; color: {{ settings.back_button_text_color or '#ffffff' }}; border: none;">
+                            <i class="fas fa-arrow-left me-2"></i>{{ settings.back_to_site_text or 'Kembali ke Situs' }}
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Available Prizes - Optimized -->
+                {% if prizes %}
+                <div class="mt-2">
+                    <h5 class="text-center text-white mb-3">Hadiah Tersedia</h5>
+                    <div class="row prize-grid">
+                        {% for prize in prizes %}
+                        <div class="col-md-3 col-sm-6 col-6 mb-2">
+                            <div class="card prize-card h-100">
+                                <div class="card-body text-center p-2">
+                                    {% if prize.icon_path %}
+                                    <img src="{{ url_for('uploaded_file', filename=prize.icon_path) }}" 
+                                         alt="{{ prize.name }}" 
+                                         class="img-fluid mb-1"
+                                         style="max-height: 40px; width: auto;" loading="lazy">
+                                    {% else %}
+                                    <i class="fas fa-gift fs-5 text-warning mb-1"></i>
+                                    {% endif %}
+                                    <h6 class="card-title text-white small mb-0">{{ prize.name }}</h6>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal fade" id="prizeModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title text-warning">🎉 Anda Menang!</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div id="modalPrizeContent">
+                    <!-- Prize content will be inserted here -->
+                </div>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Username Input Modal -->
+<div class="modal fade" id="usernameModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title text-warning">🎉 Selamat, Anda Menang!</h5>
+            </div>
+            <div class="modal-body text-center">
+                <div id="usernameModalPrize">
+                    <!-- Prize info will be inserted here -->
+                </div>
+                <div class="mt-4">
+                    <label for="winnerUsername" class="form-label text-light">Masukkan Username Anda:</label>
+                    <input type="text" class="form-control" id="winnerUsername" placeholder="Username Anda" maxlength="50" required>
+                    <small class="text-muted">Username akan digunakan untuk verifikasi hadiah</small>
+                </div>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-warning" id="submitUsername">Konfirmasi</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Winner Popup Modal -->
+<div class="modal fade" id="winnerPopupModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="popupTitle">{{ settings.popup_title or 'Selamat!' }}</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div id="popupImageContainer" class="mb-3" style="display: none;">
+                    <img id="popupImage" src="" alt="Popup Image" class="img-fluid rounded" style="max-height: 300px;">
+                </div>
+                <div id="popupDescription" class="mb-4">
+                    <!-- Description will be inserted here -->
+                </div>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                <a id="popupLink" href="#" class="btn btn-primary" target="_blank" style="display: none;">
+                    Kunjungi Sekarang
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/wheel.js') }}"></script>
+<script>
+// Performance-optimized wheel initialization
+const wheelPrizes = {{ prizes | tojson | safe }};
+const wheelSettings = {
+    color1: "{{ settings.wheel_color_1 }}",
+    color2: "{{ settings.wheel_color_2 }}",
+    textColor: "{{ settings.text_color }}",
+    borderColor: "{{ settings.border_color }}"
+};
+
+// Lazy initialize wheel
+let wheel = null;
+let wheelInitialized = false;
+
+function initWheel() {
+    if (!wheelInitialized) {
+        wheel = new SpinWheel('wheelCanvas', wheelPrizes, wheelSettings);
+        wheel.draw();
+        wheelInitialized = true;
+    }
+}
+
+// Initialize wheel when page is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initWheel);
+} else {
+    setTimeout(initWheel, 100); // Small delay for better performance
+}
+
+// Optimized spin function
+async function handleSpin() {
+    // Ensure wheel is initialized
+    initWheel();
+    
+    const voucherCode = document.getElementById('voucherCode').value.trim();
+    const centerSpinBtn = document.getElementById('centerSpinBtn');
+    
+    if (!voucherCode) {
+        alert('Silakan masukkan kode voucher');
+        document.getElementById('voucherCode').focus();
+        return;
+    }
+    
+    // Disable button during spin
+    centerSpinBtn.disabled = true;
+    centerSpinBtn.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin mb-1"></i><br><small>PUTAR</small></div>';
+    
+    try {
+        const formData = new FormData();
+        formData.append('voucher_code', voucherCode);
+        
+        const response = await fetch('{{ url_for("spin_wheel") }}', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Play spin sound effect
+            playSpinSound();
+            
+            // Spin the wheel with animation
+            wheel.spin(result.rotation, () => {
+                // Show username input modal first
+                showUsernameModal(result.prize, result.spin_id);
+                
+                // Clear voucher input
+                document.getElementById('voucherCode').value = '';
+            });
+        } else {
+            alert(result.error || 'Terjadi kesalahan');
+        }
+    } catch (error) {
+        console.error('Spin error:', error);
+        alert('Terjadi kesalahan jaringan. Silakan coba lagi.');
+    } finally {
+        // Re-enable button after delay
+        setTimeout(() => {
+            centerSpinBtn.disabled = false;
+            centerSpinBtn.innerHTML = '<div class="text-center"><i class="fas fa-play mb-1"></i><br><small>PUTAR</small></div>';
+        }, 1000);
+    }
+}
+
+// Handle form submission (Enter key)
+document.getElementById('spinForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    handleSpin();
+});
+
+// Handle center button click
+document.getElementById('centerSpinBtn').addEventListener('click', handleSpin);
+
+function showUsernameModal(prize, spinId) {
+    const modalContent = document.getElementById('usernameModalPrize');
+    let iconHtml = '';
+    
+    if (prize.icon_path) {
+        iconHtml = `<img src="${window.location.origin}/uploads/${prize.icon_path}" 
+                        alt="${prize.name}" 
+                        class="img-fluid mb-3"
+                        style="max-height: 100px;">`;
+    } else {
+        iconHtml = '<i class="fas fa-gift fs-1 text-warning mb-3"></i>';
+    }
+    
+    modalContent.innerHTML = `
+        <div>
+            ${iconHtml}
+            <h4 class="text-warning">${prize.name}</h4>
+            <p class="text-light">Selamat! Anda memenangkan hadiah ini!</p>
+        </div>
+    `;
+    
+    // Store spin ID for later use
+    document.getElementById('submitUsername').setAttribute('data-spin-id', spinId);
+    
+    // Clear username input
+    document.getElementById('winnerUsername').value = '';
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('usernameModal'));
+    modal.show();
+}
+
+function showPrizeResult(prize) {
+    const modalContent = document.getElementById('modalPrizeContent');
+    let iconHtml = '';
+    
+    if (prize.icon_path) {
+        iconHtml = `<img src="${window.location.origin}/uploads/${prize.icon_path}" 
+                        alt="${prize.name}" 
+                        class="img-fluid mb-3"
+                        style="max-height: 100px;">`;
+    } else {
+        iconHtml = '<i class="fas fa-gift fs-1 text-warning mb-3"></i>';
+    }
+    
+    modalContent.innerHTML = `
+        <div>
+            ${iconHtml}
+            <h4 class="text-warning">${prize.name}</h4>
+            <p class="text-light">Selamat! Anda telah memenangkan hadiah yang luar biasa!</p>
+        </div>
+    `;
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('prizeModal'));
+    modal.show();
+}
+
+// Background Music Control
+{% if settings.music_path %}
+const backgroundMusic = new Audio('{{ url_for("uploaded_file", filename=settings.music_path) }}');
+{% else %}
+const backgroundMusic = new Audio('{{ url_for("static", filename="audio/background-music.mp3") }}');
+{% endif %}
+backgroundMusic.loop = true;
+backgroundMusic.volume = 0.3;
+
+const musicToggle = document.getElementById('musicToggle');
+const musicIcon = document.getElementById('musicIcon');
+let musicPlaying = false;
+
+musicToggle.addEventListener('click', function() {
+    if (musicPlaying) {
+        backgroundMusic.pause();
+        musicIcon.className = 'fas fa-volume-mute';
+        musicPlaying = false;
+    } else {
+        backgroundMusic.play().catch(function(error) {
+            console.log('Music play failed:', error);
+        });
+        musicIcon.className = 'fas fa-volume-up';
+        musicPlaying = true;
+    }
+});
+
+// Auto play music when user first interacts with page
+document.addEventListener('click', function() {
+    if (!musicPlaying && backgroundMusic.paused) {
+        backgroundMusic.play().catch(function(error) {
+            console.log('Auto music play failed:', error);
+        });
+        musicIcon.className = 'fas fa-volume-up';
+        musicPlaying = true;
+    }
+}, { once: true });
+
+// Spin Sound Effect
+function playSpinSound() {
+    {% if settings.spin_sound_path %}
+    const spinSound = new Audio('{{ url_for("uploaded_file", filename=settings.spin_sound_path) }}');
+    {% else %}
+    const spinSound = new Audio('{{ url_for("static", filename="sounds/default_spin.weba") }}');
+    {% endif %}
+    
+    spinSound.volume = 0.5;
+    spinSound.play().catch(function(error) {
+        console.log('Spin sound play failed:', error);
+    });
+}
+
+// Handle username submission
+document.getElementById('submitUsername').addEventListener('click', async function() {
+    const username = document.getElementById('winnerUsername').value.trim();
+    const spinId = this.getAttribute('data-spin-id');
+    
+    if (!username) {
+        alert('Silakan masukkan username Anda');
+        return;
+    }
+    
+    try {
+        // Disable button
+        this.disabled = true;
+        this.innerHTML = 'Menyimpan...';
+        
+        const formData = new FormData();
+        formData.append('spin_id', spinId);
+        formData.append('username', username);
+        
+        const response = await fetch('{{ url_for("save_username") }}', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Hide username modal
+            const usernameModal = bootstrap.Modal.getInstance(document.getElementById('usernameModal'));
+            usernameModal.hide();
+            
+            // Show custom popup if enabled
+            {% if settings.popup_enabled %}
+            showWinnerPopup();
+            {% else %}
+            // Show final confirmation
+            alert(`Terima kasih ${username}! Username Anda telah disimpan. Admin dapat melihat hadiah Anda di panel admin.`);
+            {% endif %}
+        } else {
+            alert(result.error || 'Terjadi kesalahan saat menyimpan username');
+        }
+    } catch (error) {
+        console.error('Username save error:', error);
+        alert('Terjadi kesalahan jaringan. Silakan coba lagi.');
+    } finally {
+        // Re-enable button
+        this.disabled = false;
+        this.innerHTML = 'Konfirmasi';
+    }
+});
+
+// Function to show winner popup
+function showWinnerPopup() {
+    // Set popup content
+    {% if settings.popup_title %}
+    document.getElementById('popupTitle').textContent = '{{ settings.popup_title }}';
+    {% endif %}
+    
+    {% if settings.popup_description %}
+    document.getElementById('popupDescription').innerHTML = `{{ settings.popup_description|safe }}`;
+    {% endif %}
+    
+    // Set popup image if exists
+    {% if settings.popup_image_path %}
+    const imageContainer = document.getElementById('popupImageContainer');
+    const image = document.getElementById('popupImage');
+    image.src = '{{ url_for("uploaded_file", filename=settings.popup_image_path) }}';
+    imageContainer.style.display = 'block';
+    {% endif %}
+    
+    // Set popup link if exists
+    {% if settings.popup_link_url %}
+    const link = document.getElementById('popupLink');
+    link.href = '{{ settings.popup_link_url }}';
+    link.textContent = '{{ settings.popup_link_text or "Kunjungi Sekarang" }}';
+    link.style.display = 'inline-block';
+    {% endif %}
+    
+    // Show popup modal
+    const popupModal = new bootstrap.Modal(document.getElementById('winnerPopupModal'));
+    popupModal.show();
+}
+</script>
+{% endblock %}

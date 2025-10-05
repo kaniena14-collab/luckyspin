@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en" {% if request.endpoint and 'admin' in request.endpoint %}data-bs-theme="light"{% else %}data-bs-theme="dark"{% endif %}>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Lucky Spin Wheel{% endblock %}</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="{% block description %}Lucky Spin Wheel - Putar roda keberuntungan dan menangkan hadiah menarik! Masukkan kode voucher Anda dan rasakan sensasi memenangkan berbagai hadiah.{% endblock %}">
+    <meta name="keywords" content="{% block keywords %}lucky spin, wheel of fortune, hadiah, voucher, spin wheel, roda keberuntungan, partai sbo{% endblock %}">
+    <meta name="author" content="Partai SBO">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Google Site Verification -->
+    <meta name="google-site-verification" content="d6VY9RNBqT9dV-zL7Ar3tACclu9CgKWhFU-SPcnYrbg" />
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="{% block canonical %}https://luckyspin-partaisbo.replit.app/{% endblock %}">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{% block og_url %}https://luckyspin-partaisbo.replit.app/{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}Lucky Spin Wheel - Partai SBO{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Putar roda keberuntungan dan menangkan hadiah menarik! Masukkan kode voucher Anda dan rasakan sensasi memenangkan berbagai hadiah.{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{{ url_for('static', filename='favicon-512x512.png', _external=True) }}{% endblock %}">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="{% block twitter_url %}https://luckyspin-partaisbo.replit.app/{% endblock %}">
+    <meta property="twitter:title" content="{% block twitter_title %}Lucky Spin Wheel - Partai SBO{% endblock %}">
+    <meta property="twitter:description" content="{% block twitter_description %}Putar roda keberuntungan dan menangkan hadiah menarik! Masukkan kode voucher Anda dan rasakan sensasi memenangkan berbagai hadiah.{% endblock %}">
+    <meta property="twitter:image" content="{% block twitter_image %}{{ url_for('static', filename='favicon-512x512.png', _external=True) }}{% endblock %}">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='favicon-192x192.png') }}">
+    <link rel="icon" type="image/png" sizes="512x512" href="{{ url_for('static', filename='favicon-512x512.png') }}">
+    
+    <!-- Structured Data -->
+    {% if not request.endpoint or 'admin' not in request.endpoint %}
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Lucky Spin Wheel",
+        "description": "Putar roda keberuntungan dan menangkan hadiah menarik! Masukkan kode voucher Anda dan rasakan sensasi memenangkan berbagai hadiah.",
+        "url": "https://luckyspin-partaisbo.replit.app/",
+        "applicationCategory": "Game",
+        "operatingSystem": "Web Browser",
+        "author": {
+            "@type": "Organization",
+            "name": "Partai SBO"
+        },
+        "offers": {
+            "@type": "Offer",
+            "description": "Bermain gratis dengan kode voucher"
+        },
+        "keywords": "lucky spin, wheel of fortune, hadiah, voucher, spin wheel, roda keberuntungan, partai sbo"
+    }
+    </script>
+    {% endif %}
+    
+    <!-- Bootstrap CSS -->
+    {% if request.endpoint and 'admin' in request.endpoint %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Admin theme overrides for better readability */
+        body {
+            background-color: #f8f9fa !important;
+            color: #212529 !important;
+            font-weight: 500;
+        }
+        .card {
+            background-color: #ffffff !important;
+            border: 1px solid #dee2e6 !important;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+        }
+        .card-header {
+            background-color: #e9ecef !important;
+            border-bottom: 1px solid #dee2e6 !important;
+            color: #495057 !important;
+            font-weight: 600;
+        }
+        .card-body {
+            color: #212529 !important;
+        }
+        .text-muted {
+            color: #6c757d !important;
+        }
+        .table {
+            color: #212529 !important;
+        }
+        .table-light {
+            background-color: #f8f9fa !important;
+        }
+        .form-control {
+            border: 1px solid #ced4da !important;
+            background-color: #ffffff !important;
+            color: #495057 !important;
+        }
+        .form-label {
+            color: #495057 !important;
+            font-weight: 600;
+        }
+        .btn {
+            font-weight: 600;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #212529 !important;
+            font-weight: 700;
+        }
+        .navbar-light .navbar-brand {
+            color: #212529 !important;
+            font-weight: 700;
+        }
+        .navbar-light .navbar-nav .nav-link {
+            color: #495057 !important;
+            font-weight: 600;
+        }
+        .navbar-light .navbar-nav .nav-link:hover {
+            color: #212529 !important;
+        }
+        .alert {
+            border: 1px solid !important;
+            font-weight: 500;
+        }
+    </style>
+    {% else %}
+    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+    {% endif %}
+    
+    <!-- Font Awesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg {% if request.endpoint and 'admin' in request.endpoint %}navbar-light bg-light shadow-sm{% else %}navbar-dark bg-dark{% endif %}">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-dharmachakra me-2"></i>Lucky Spin
+            </a>
+            
+            <div class="navbar-nav ms-auto">
+                {% if request.endpoint and 'admin' in request.endpoint %}
+                    <a class="nav-link" href="{{ url_for('admin_dashboard') }}">
+                        <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                    </a>
+                    <a class="nav-link" href="{{ url_for('admin_logout') }}">
+                        <i class="fas fa-sign-out-alt me-1"></i>Logout
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="container mt-3">
+                {% for category, message in messages %}
+                    <div class="alert alert-{% if category == 'error' %}danger{% elif category == 'success' %}success{% elif category == 'info' %}info{% else %}warning{% endif %} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="{% if request.endpoint and 'admin' in request.endpoint %}bg-light text-dark border-top{% else %}bg-dark text-light{% endif %} py-4 mt-5">
+        <div class="container text-center">
+            <p>&copy; 2025 Lucky Spin Wheel. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>

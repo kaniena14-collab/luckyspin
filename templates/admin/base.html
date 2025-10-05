@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>{% block title %}Panel Admin - LuckySpin Wheel{% endblock %}</title>
+    
+    <!-- SEO Meta Tags for Admin -->
+    <meta name="description" content="Panel Admin Lucky Spin Wheel - Kelola hadiah, voucher, dan pengaturan aplikasi roda keberuntungan.">
+    <meta name="author" content="Partai SBO">
+    <meta name="robots" content="noindex, nofollow">
+    
+    <!-- Google Site Verification -->
+    <meta name="google-site-verification" content="d6VY9RNBqT9dV-zL7Ar3tACclu9CgKWhFU-SPcnYrbg" />
+    
+    <!-- Canonical URL for Admin -->
+    <link rel="canonical" href="https://luckyspin-partaisbo.replit.app/admin">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='favicon-192x192.png') }}">
+    <link rel="icon" type="image/png" sizes="512x512" href="{{ url_for('static', filename='favicon-512x512.png') }}">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        /* ADMIN PANEL STYLING - REFRESH v3.0 - 2024 */
+        /* FORCE HARD REFRESH WITH !important */
+        * { box-sizing: border-box !important; }
+        :root {
+            --admin-primary: #6f42c1;
+            --admin-secondary: #6c757d;
+            --admin-success: #28a745;
+            --admin-warning: #ffc107;
+            --admin-danger: #dc3545;
+            --admin-info: #17a2b8;
+            --admin-bg: #ffffff;
+            --admin-sidebar: #f8f9fa;
+            --admin-text: #000000;
+            --admin-border: #dee2e6;
+            --admin-hover: #f8f9fa;
+            --admin-card-bg: #ffffff;
+        }
+        
+        
+        body {
+            background-color: #ffffff !important;
+            background: #ffffff !important;
+            color: #000000 !important;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+            font-weight: bold !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        
+        .admin-wrapper {
+            min-height: 100vh;
+            display: flex;
+        }
+        
+        .admin-sidebar {
+            width: 280px !important;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+            border-right: 3px solid #dee2e6 !important;
+            box-shadow: 4px 0 15px rgba(0,0,0,0.1) !important;
+            position: fixed !important;
+            height: 100vh !important;
+            overflow-y: auto !important;
+            z-index: 1000 !important;
+            top: 0 !important;
+            left: 0 !important;
+        }
+        
+        .admin-content {
+            margin-left: 280px;
+            width: calc(100% - 280px);
+            padding: 25px;
+            background-color: #ffffff !important;
+            min-height: 100vh;
+        }
+        
+        .sidebar-header {
+            padding: 30px 20px;
+            background: linear-gradient(135deg, #ffffff 0%, #f1f3f4 100%) !important;
+            color: #000000 !important;
+            text-align: center;
+            border-bottom: 2px solid #dee2e6;
+            border-radius: 0;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .sidebar-header h4 {
+            margin: 0;
+            font-weight: bold;
+            color: #000000 !important;
+            font-size: 1.4rem;
+        }
+        
+        .sidebar-menu {
+            padding: 15px 0;
+        }
+        
+        .sidebar-menu .nav-link {
+            color: #000000 !important;
+            padding: 16px 25px;
+            margin: 4px 10px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+            font-weight: bold;
+            font-size: 14px;
+            background: rgba(255,255,255,0.5);
+        }
+        
+        .sidebar-menu .nav-link:hover {
+            background: #ffffff !important;
+            border-left-color: var(--admin-primary);
+            color: #000000 !important;
+            text-decoration: none;
+            font-weight: bold;
+            transform: translateX(5px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar-menu .nav-link.active {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%) !important;
+            color: #000000 !important;
+            border-left-color: var(--admin-primary);
+            font-weight: bold;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+            transform: translateX(8px);
+        }
+        
+        .sidebar-menu .nav-link i {
+            width: 20px;
+            margin-right: 15px;
+            text-align: center;
+            font-size: 16px;
+        }
+        
+        
+        .admin-card {
+            background: var(--admin-card-bg);
+            border: 1px solid var(--admin-border);
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .admin-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateY(-1px);
+        }
+        
+        .btn-admin-primary {
+            background: var(--admin-primary);
+            border-color: var(--admin-primary);
+            color: white;
+            border-radius: 6px;
+            padding: 8px 16px;
+            font-weight: 500;
+        }
+        
+        .btn-admin-primary:hover {
+            background: #5a2a9a;
+            border-color: #5a2a9a;
+            color: white;
+        }
+        
+        .btn-admin-success {
+            background: var(--admin-success);
+            border-color: var(--admin-success);
+            color: white;
+            border-radius: 6px;
+            padding: 8px 16px;
+            font-weight: 500;
+        }
+        
+        .btn-admin-success:hover {
+            background: #1e7e34;
+            border-color: #1e7e34;
+            color: white;
+        }
+        
+        .stats-card {
+            background: var(--admin-card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid var(--admin-border);
+            transition: all 0.3s ease;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 123, 255, 0.15);
+        }
+        
+        .stats-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: var(--admin-primary);
+        }
+        
+        .stats-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--admin-text);
+            margin-bottom: 5px;
+        }
+        
+        .stats-label {
+            color: var(--admin-secondary);
+            font-weight: 500;
+        }
+        
+        .page-header {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%) !important;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .page-title {
+            color: #000000 !important;
+            font-weight: bold;
+            font-size: 1.8rem;
+            margin: 0;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .admin-sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .admin-sidebar.show {
+                transform: translateX(0);
+            }
+            
+            .admin-content {
+                margin-left: 0;
+                width: 100%;
+            }
+            
+            .mobile-toggle {
+                position: fixed;
+                top: 15px;
+                left: 15px;
+                z-index: 1001;
+                background: var(--admin-primary);
+                border: none;
+                color: white;
+                padding: 10px;
+                border-radius: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-wrapper">
+        <!-- Sidebar -->
+        <nav class="admin-sidebar" id="adminSidebar">
+            <div class="sidebar-header">
+                <h4><i class="fas fa-dharmachakra me-2"></i>Wieproject</h4>
+                <small>Luckyspin</small>
+            </div>
+            
+            <div class="sidebar-menu">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}" href="{{ url_for('admin_dashboard') }}">
+                            <i class="fas fa-tachometer-alt"></i>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'admin_prizes' %}active{% endif %}" href="{{ url_for('admin_prizes') }}">
+                            <i class="fas fa-trophy"></i>
+                            Kelola Hadiah
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'admin_vouchers' %}active{% endif %}" href="{{ url_for('admin_vouchers') }}">
+                            <i class="fas fa-ticket-alt"></i>
+                            Kelola Voucher
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'admin_vip_vouchers' %}active{% endif %}" href="{{ url_for('admin_vip_vouchers') }}">
+                            <i class="fas fa-crown"></i>
+                            VIP Voucher
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'admin_winners' %}active{% endif %}" href="{{ url_for('admin_winners') }}">
+                            <i class="fas fa-award"></i>
+                            Daftar Pemenang
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'admin_history' %}active{% endif %}" href="{{ url_for('admin_history') }}">
+                            <i class="fas fa-history"></i>
+                            Riwayat Spin
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'admin_settings' %}active{% endif %}" href="{{ url_for('admin_settings') }}">
+                            <i class="fas fa-cog"></i>
+                            Pengaturan Wheel
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'admin_account_settings' %}active{% endif %}" href="{{ url_for('admin_account_settings') }}">
+                            <i class="fas fa-user-cog"></i>
+                            Pengaturan Akun
+                        </a>
+                    </li>
+                    
+                    <hr class="my-3" style="border-color: var(--admin-border);">
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}" target="_blank">
+                            <i class="fas fa-external-link-alt"></i>
+                            Lihat Website
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin_logout') }}" style="color: #dc3545 !important; font-weight: bold; background: rgba(220,53,69,0.1) !important; margin-top: 8px;">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Keluar
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        
+        <!-- Mobile Toggle Button -->
+        <button class="mobile-toggle d-md-none" onclick="toggleSidebar()">
+            <i class="fas fa-bars"></i>
+        </button>
+        
+        <!-- Main Content -->
+        <main class="admin-content">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        
+        // Mobile Sidebar Toggle
+        function toggleSidebar() {
+            const sidebar = document.getElementById('adminSidebar');
+            sidebar.classList.toggle('show');
+        }
+        
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('adminSidebar');
+            const toggleBtn = document.querySelector('.mobile-toggle');
+            
+            if (window.innerWidth <= 768 && 
+                !sidebar.contains(event.target) && 
+                !toggleBtn.contains(event.target)) {
+                sidebar.classList.remove('show');
+            }
+        });
+    </script>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>

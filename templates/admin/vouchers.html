@@ -1,0 +1,439 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Kelola Voucher - Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">
+        <i class="fas fa-ticket-alt me-2"></i>
+        Kelola Voucher
+    </h1>
+    <p class="mb-0 text-muted">Buat dan kelola kode voucher untuk akses wheel spin</p>
+</div>
+        
+<div class="d-flex justify-content-end mb-3">
+    <button class="btn btn-admin-primary" data-bs-toggle="modal" data-bs-target="#generateVoucherModal">
+        <i class="fas fa-plus me-1"></i>Buat Voucher Baru
+    </button>
+</div>
+    
+    <!-- Stats -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);">
+                <div class="card-body text-center">
+                    <i class="fas fa-ticket-alt fs-2 text-success mb-3"></i>
+                    <h3 style="color: #000000; font-weight: bold;">{{ active_vouchers|length }}</h3>
+                    <p class="mb-0" style="color: #333333; font-weight: 600;">Voucher Aktif</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);">
+                <div class="card-body text-center">
+                    <i class="fas fa-check-circle fs-2 text-danger mb-3"></i>
+                    <h3 style="color: #000000; font-weight: bold;">{{ used_vouchers|length }}</h3>
+                    <p class="mb-0" style="color: #333333; font-weight: 600;">Voucher Terpakai (50 Terakhir)</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);">
+                <div class="card-body text-center">
+                    <i class="fas fa-chart-pie fs-2 text-info mb-3"></i>
+                    <h3 style="color: #000000; font-weight: bold;">
+                        {% if active_vouchers|length + used_vouchers|length > 0 %}
+                        {{ "%.1f"|format((used_vouchers|length / (active_vouchers|length + used_vouchers|length)) * 100) }}%
+                        {% else %}
+                        0%
+                        {% endif %}
+                    </h3>
+                    <p class="mb-0" style="color: #333333; font-weight: 600;">Tingkat Pemakaian</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Active Vouchers -->
+    <div class="card border-0 shadow-sm mb-4" style="background: #ffffff;">
+        <div class="card-header" style="background: linear-gradient(135deg, #e9ecef 0%, #f8f9fa 100%); border-bottom: 2px solid #dee2e6;">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0" style="color: #000000; font-weight: bold;">
+                    <i class="fas fa-check-circle me-2 text-success"></i>
+                    Voucher Aktif ({{ active_vouchers|length }})
+                </h5>
+                {% if active_vouchers %}
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-danger" id="bulkDeleteActiveBtn" onclick="bulkDeleteActive()" style="display: none;">
+                        <i class="fas fa-trash me-1"></i>Hapus Terpilih
+                    </button>
+                    <button class="btn btn-sm btn-outline-success" onclick="exportVouchers('active')">
+                        <i class="fas fa-download me-1"></i>Export
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card-body">
+            {% if active_vouchers %}
+            <!-- Bulk Actions -->
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="selectAllActive" onchange="toggleSelectAllActive()">
+                        <label class="form-check-label" for="selectAllActive" style="color: #000000; font-weight: 500;">
+                            Pilih Semua Voucher Aktif
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th width="50"></th>
+                            <th>Code</th>
+                            <th>Created Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for voucher in active_vouchers[:20] %}
+                        <tr>
+                            <td>
+                                <input type="checkbox" class="form-check-input active-voucher-checkbox" value="{{ voucher.id }}" onchange="updateBulkDeleteButtonActive()">
+                            </td>
+                            <td>
+                                <code class="text-success">{{ voucher.code }}</code>
+                                <button class="btn btn-sm btn-outline-secondary ms-2" 
+                                        onclick="copyToClipboard('{{ voucher.code }}')"
+                                        title="Copy to clipboard">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </td>
+                            <td>{{ voucher.created_at|wib }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-danger" 
+                                        onclick="deleteVoucher({{ voucher.id }}, '{{ voucher.code }}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% if active_vouchers|length > 20 %}
+                        <tr>
+                            <td colspan="3" class="text-center text-muted">
+                                ... and {{ active_vouchers|length - 20 }} more active vouchers
+                            </td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-ticket-alt fs-1 text-muted mb-3"></i>
+                <h5 class="text-muted">No active vouchers</h5>
+                <p class="text-muted mb-4">Generate vouchers to allow users to spin the wheel.</p>
+                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#generateVoucherModal">
+                    <i class="fas fa-plus me-2"></i>Generate First Vouchers
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Used Vouchers -->
+    {% if used_vouchers %}
+    <div class="card border-0 shadow-sm" style="background: #ffffff;">
+        <div class="card-header" style="background: linear-gradient(135deg, #e9ecef 0%, #f8f9fa 100%); border-bottom: 2px solid #dee2e6;">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0" style="color: #000000; font-weight: bold;">
+                    <i class="fas fa-check-circle me-2 text-danger"></i>
+                    Voucher Terpakai Terbaru (50 Terakhir)
+                </h5>
+                <button class="btn btn-sm btn-outline-danger" id="bulkDeleteUsedBtn" onclick="bulkDeleteUsed()" style="display: none;">
+                    <i class="fas fa-trash me-1"></i>Hapus Terpilih
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <!-- Bulk Actions for Used Vouchers -->
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="selectAllUsed" onchange="toggleSelectAllUsed()">
+                        <label class="form-check-label" for="selectAllUsed" style="color: #000000; font-weight: 500;">
+                            Pilih Semua Voucher Terpakai
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th width="50"></th>
+                            <th>Code</th>
+                            <th>Used Date</th>
+                            <th>Prize Won</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for voucher in used_vouchers %}
+                        <tr>
+                            <td>
+                                <input type="checkbox" class="form-check-input used-voucher-checkbox" value="{{ voucher.id }}" onchange="updateBulkDeleteButtonUsed()">
+                            </td>
+                            <td>
+                                <code class="text-danger">{{ voucher.code }}</code>
+                            </td>
+                            <td>{{ voucher.used_at|wib if voucher.used_at else 'Belum Digunakan' }}</td>
+                            <td>
+                                {% if voucher.spin_results %}
+                                    {% for result in voucher.spin_results %}
+                                    <span class="badge bg-success">{{ result.prize.name }}</span>
+                                    {% endfor %}
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Generate Voucher Modal -->
+<div class="modal fade" id="generateVoucherModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background: #ffffff;">
+            <form method="POST" action="{{ url_for('admin_generate_vouchers') }}">
+                <div class="modal-header" style="border-bottom: 2px solid #dee2e6;">
+                    <h5 class="modal-title" style="color: #000000; font-weight: bold;"><i class="fas fa-plus me-2 text-success"></i>Buat Voucher Baru</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="voucherCount" class="form-label">Jumlah Voucher *</label>
+                        <input type="number" class="form-control" id="voucherCount" name="count" 
+                               min="1" max="1000" value="10" required>
+                        <div class="form-text">Generate antara 1 sampai 1000 voucher sekaligus</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="voucherPrefix" class="form-label">Prefix Kode Voucher</label>
+                        <input type="text" class="form-control" id="voucherPrefix" name="prefix" 
+                               placeholder="SBO" maxlength="10" value="SBO">
+                        <div class="form-text">Contoh: SBO akan menghasilkan kode seperti SBO12345</div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-info-circle me-2"></i>Info Voucher</h6>
+                        <ul class="mb-0">
+                            <li>Setiap voucher hanya bisa digunakan sekali</li>
+                            <li>Kode voucher terdiri dari prefix + 5 digit random</li>
+                            <li>Kode dibuat unik dan tidak akan duplikat</li>
+                            <li>User perlu kode voucher valid untuk spin wheel</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-plus me-1"></i>Generate Vouchers
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function deleteVoucher(id, code) {
+    if (confirm(`Are you sure you want to delete voucher "${code}"? This action cannot be undone.`)) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `{{ url_for('admin_delete_voucher', voucher_id=0) }}`.replace('0', id);
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        // Show temporary success message
+        const button = event.target.closest('button');
+        const originalIcon = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check text-success"></i>';
+        setTimeout(() => {
+            button.innerHTML = originalIcon;
+        }, 1000);
+    }, function(err) {
+        console.error('Could not copy text: ', err);
+        alert('Failed to copy to clipboard');
+    });
+}
+
+function exportVouchers(type) {
+    const vouchers = [];
+    const rows = document.querySelectorAll('tbody tr');
+    
+    rows.forEach(row => {
+        const codeEl = row.querySelector('code');
+        if (codeEl) {
+            vouchers.push(codeEl.textContent);
+        }
+    });
+    
+    if (vouchers.length === 0) {
+        alert('No vouchers to export');
+        return;
+    }
+    
+    const content = vouchers.join('\n');
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${type}_vouchers_${new Date().toISOString().split('T')[0]}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+
+// Bulk delete functions for Active Vouchers
+function toggleSelectAllActive() {
+    const selectAll = document.getElementById('selectAllActive');
+    const checkboxes = document.querySelectorAll('.active-voucher-checkbox');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAll.checked;
+    });
+    
+    updateBulkDeleteButtonActive();
+}
+
+function updateBulkDeleteButtonActive() {
+    const checkboxes = document.querySelectorAll('.active-voucher-checkbox:checked');
+    const bulkDeleteBtn = document.getElementById('bulkDeleteActiveBtn');
+    
+    if (checkboxes.length > 0) {
+        bulkDeleteBtn.style.display = 'inline-block';
+        bulkDeleteBtn.textContent = `Hapus ${checkboxes.length} Terpilih`;
+    } else {
+        bulkDeleteBtn.style.display = 'none';
+    }
+}
+
+function bulkDeleteActive() {
+    const checkboxes = document.querySelectorAll('.active-voucher-checkbox:checked');
+    const voucherIds = Array.from(checkboxes).map(cb => cb.value);
+    
+    if (voucherIds.length === 0) {
+        alert('Tidak ada voucher aktif yang dipilih');
+        return;
+    }
+    
+    if (!confirm(`Apakah Anda yakin ingin menghapus ${voucherIds.length} voucher aktif yang dipilih? Tindakan ini tidak dapat dibatalkan.`)) {
+        return;
+    }
+    
+    fetch('/admin/vouchers/bulk-delete', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            voucher_ids: voucherIds,
+            type: 'active'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Terjadi kesalahan saat menghapus voucher');
+    });
+}
+
+// Bulk delete functions for Used Vouchers
+function toggleSelectAllUsed() {
+    const selectAll = document.getElementById('selectAllUsed');
+    const checkboxes = document.querySelectorAll('.used-voucher-checkbox');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAll.checked;
+    });
+    
+    updateBulkDeleteButtonUsed();
+}
+
+function updateBulkDeleteButtonUsed() {
+    const checkboxes = document.querySelectorAll('.used-voucher-checkbox:checked');
+    const bulkDeleteBtn = document.getElementById('bulkDeleteUsedBtn');
+    
+    if (checkboxes.length > 0) {
+        bulkDeleteBtn.style.display = 'inline-block';
+        bulkDeleteBtn.textContent = `Hapus ${checkboxes.length} Terpilih`;
+    } else {
+        bulkDeleteBtn.style.display = 'none';
+    }
+}
+
+function bulkDeleteUsed() {
+    const checkboxes = document.querySelectorAll('.used-voucher-checkbox:checked');
+    const voucherIds = Array.from(checkboxes).map(cb => cb.value);
+    
+    if (voucherIds.length === 0) {
+        alert('Tidak ada voucher terpakai yang dipilih');
+        return;
+    }
+    
+    if (!confirm(`Apakah Anda yakin ingin menghapus ${voucherIds.length} voucher terpakai yang dipilih? Tindakan ini tidak dapat dibatalkan.`)) {
+        return;
+    }
+    
+    fetch('/admin/vouchers/bulk-delete', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            voucher_ids: voucherIds,
+            type: 'used'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Terjadi kesalahan saat menghapus voucher');
+    });
+}
+</script>
+{% endblock %}
