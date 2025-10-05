@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: spinwin-admin
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn app:app"
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      - key: SESSION_SECRET
+        value: "rahasia-kuat-123!@#"
+    disk:
+      name: uploads
+      mountPath: /opt/render/project/src/uploads
